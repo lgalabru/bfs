@@ -1,0 +1,13 @@
+[package]
+name = "bfs-drivers-aws"
+version = "0.1.0"
+authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
+edition = "2018"
+
+[dependencies]
+rusoto_core = "0.40"
+rusoto_credential = "0.40"
+rusoto_s3 = "0.40"
+drivers = { package = "bfs-drivers", path = "../.." }
+futures = "0.1"
+tokio = "0.1"

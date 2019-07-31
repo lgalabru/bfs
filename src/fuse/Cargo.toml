@@ -1,0 +1,13 @@
+[package]
+name = "bfs_fuse"
+version = "0.1.0"
+authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
+edition = "2018"
+
+[dependencies]
+fuse = "0.3.1"
+time = "0.1.42"
+libc = "0.2.59"
+log = "0.4.6"
+thread-scoped = "1.0.2"
+env_logger = "0.6.0"

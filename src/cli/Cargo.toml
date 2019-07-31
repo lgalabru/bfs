@@ -1,0 +1,13 @@
+[package]
+name = "bfs-cli"
+version = "0.1.0"
+authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
+edition = "2018"
+
+[dependencies]
+clap = "2"
+termcolor = "1"
+tokio = "0.1"
+bfs = { package = "lib-bfs", path = "../lib_bfs" }
+drivers_aws = { package = "bfs-drivers-aws", path = "../lib_bfs/src/drivers/src/aws" }
+drivers = { package = "bfs-drivers", path = "../lib_bfs/src/drivers" }
