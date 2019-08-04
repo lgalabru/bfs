@@ -11,3 +11,5 @@ libc = "0.2.59"
 log = "0.4.6"
 thread-scoped = "1.0.2"
 env_logger = "0.6.0"
+drivers_aws = { package = "bfs-drivers-aws", path = "../lib_bfs/src/drivers/src/aws" }
+drivers = { package = "bfs-drivers", path = "../lib_bfs/src/drivers" }
