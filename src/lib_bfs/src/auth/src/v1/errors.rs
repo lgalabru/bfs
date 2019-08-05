@@ -9,5 +9,6 @@ pub enum Error {
     PayloadEncodingCorrupted,
     PayloadDataCorrupted,
     PrincipalMissing,
+    SignatureEncodingCorrupted,
 }
 

@@ -3,6 +3,7 @@ use sha2::{Sha256, Digest};
 use ripemd160::Ripemd160;
 use bs58;
 use base64;
+use secp256k1::{Secp256k1, Message, Signature, PublicKey};
 use der_parser::parse_der;
 
 use crate::utils;
@@ -84,7 +85,7 @@ impl CheckToken {
 
         // SHA256
         let mut sha2 = Sha256::new();
-        sha2.input(pub_key_hex);
+        sha2.input(pub_key_hex.clone());
         let pub_key_hashed = sha2.result();
 
         // RIPEMD160
@@ -108,6 +109,27 @@ impl CheckToken {
         // Base58 encode
         let address = bs58::encode(v_pub_key_h160_checksumed).into_string();
 
+        // Check Signature
+        let w_url_safe_b64_decode = base64::decode_config(&signature, base64::URL_SAFE);
+        if let Err(_) = w_url_safe_b64_decode {
+            // Unable to base64 decode JWT's payload
+            return Err(Error::SignatureEncodingCorrupted);
+        }
+        let compact_sig = w_url_safe_b64_decode.unwrap();
+
+        let signing_input = ([jwt_parts[0].clone(), jwt_parts[1].clone()].join("."));
+        
+        // SHA256
+        let mut sha2 = Sha256::new();
+        sha2.input(signing_input.clone());
+        let signing_input_hashed = sha2.result();
+
+        let secp = Secp256k1::verification_only();
+        let public_key = PublicKey::from_slice(&pub_key_hex).expect("public keys must be 33 or 65 bytes, serialized according to SEC 2");
+        let message = Message::from_slice(&signing_input_hashed).expect("messages must be 32 bytes and are expected to be hashes");
+        let sig = Signature::from_compact(&compact_sig).expect("compact signatures are 64 bytes;");
+        assert!(secp.verify(&message, &sig, &public_key).is_ok());
+
         // Todo: Check payload.iss / address against issuerAddress
         // Todo: Check payload.iat against options.oldestValidTokenTimestamp (1)
         // Todo: Check payload.hubUrl against options.validHubUrls
@@ -115,8 +137,6 @@ impl CheckToken {
         // Todo: Check payload.gaiaChallenge against challengeTexts
         // Todo: Check payload.exp against time.now
         // Todo: Check payload.associationToken
-
-        // Fun stuff: token verification
 
         Ok(())
     }

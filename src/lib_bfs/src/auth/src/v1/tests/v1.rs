@@ -58,19 +58,8 @@ fn it_should_fail_if_iss_missing() {
 }
 
 #[test]
-fn it_should_fail_() {
-    let token = "v1:eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIwMjUwODYzYWQ2NGE4N2FlOGEyZmU4M2MxYWYxYTg0MDNjYjUzZjUzZTQ4NmQ4NTExZGFkOGEwNDg4N2U1YjIzNTIifQ.sig".to_string();
+fn it_should_succeed_with_a_valid_token() {
+    let token = "v1:eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJnYWlhQ2hhbGxlbmdlIjoiW1wiZ2FpYWh1YlwiLFwiMFwiLFwic3RvcmFnZTIuYmxvY2tzdGFjay5vcmdcIixcImJsb2Nrc3RhY2tfc3RvcmFnZV9wbGVhc2Vfc2lnblwiXSIsImh1YlVybCI6Imh0dHBzOi8vaHViLmJsb2Nrc3RhY2sub3JnIiwiaXNzIjoiMDNkOTg5YzA5YzNhZjhlYjcxYzBiM2I3NTQ1ODc4MmYzYjQzZDZkOTk2MGY5N2Y0ZmIyNjY3ZDczNjhiZTJhZjk0Iiwic2FsdCI6eyJ0eXBlIjoiQnVmZmVyIiwiZGF0YSI6WzExOCwxMjgsMTAyLDMsMTIsMTMzLDc2LDQyLDE2LDIwMSwxMDQsNjEsMTgyLDE4OCwxNiw2N119fQ.LCeFnVh7vi9zUowMgULpLGXY1acpswH4EWv5qhtOV7kWJxnSNJVkQf8tDRPN_Yhxt1sRONDwJwtCImU6TvlZYQ".to_string();
     let mut auth = CheckToken::new(token);
-    println!("{:?}", auth.validate().unwrap_err());
-    assert!(auth.validate().unwrap_err() == Error::PrincipalMissing);
+    assert!(auth.validate().unwrap() == ());
 }
-
-
-    // let token = "v1:@eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.ErO0fS1yKjr73zJmeYqazVauy8z4Xwuhebs9fXVr3u4".to_string();
-
-// #[test]
-// fn it_should_fail_if_can_not_b64_decode_payload() {
-//     let token = "v1:x.y.z".to_string();
-//     let mut auth = v1::Authentication::new(token);
-//     auth.validate().unwrap_err();
-// }

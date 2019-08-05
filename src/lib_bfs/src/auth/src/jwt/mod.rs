@@ -39,7 +39,7 @@ pub struct Payload {
     /// App specific:
     pub gaiaChallenge: Option<String>,
     /// App specific:
-    pub salt: Option<String>,
+    pub salt: Option<Salt>,
     /// App specific:
     pub hubUrl: Option<String>,
     /// App specific:
@@ -54,6 +54,12 @@ pub struct Payload {
 pub struct AuthScope {
     pub scope: Option<String>,
     pub domain: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Salt {
+    pub r#type: Option<String>,
+    pub data: Option<Vec<u8>>
 }
 
 // export const AuthScopes = [
