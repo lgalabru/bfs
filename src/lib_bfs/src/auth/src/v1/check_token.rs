@@ -3,35 +3,21 @@ use sha2::{Sha256, Digest};
 use ripemd160::Ripemd160;
 use bs58;
 use base64;
+use der_parser::parse_der;
 
 use crate::utils;
 use crate::jwt;
+use crate::v1::errors::Error;
 
-// pub struct Error;
-
-/// Hex deserialization error
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub enum Error {
-    /// Authorization header should start with 'v1:'
-    VersionMismatch,
-    /// Tokens should have 3 components
-    MalFormattedToken,
-    HeaderEncodingCorrupted,
-    HeaderDataCorrupted,
-    PayloadEncodingCorrupted,
-    PayloadDataCorrupted,
-    PrincipalMissing,
-}
-
-pub struct Authentication {
+pub struct CheckToken {
     /// JWT Token - utf-8 encoded
     token: String
 }
 
-impl Authentication {
+impl CheckToken {
 
-    pub fn new(token: String) -> Authentication {
-        Authentication {
+    pub fn new(token: String) -> CheckToken {
+        CheckToken {
             token
         }
     }
@@ -55,6 +41,7 @@ impl Authentication {
             return Err(Error::MalFormattedToken);
         }
 
+        let signing_input = [jwt_parts[0].clone(), jwt_parts[1].clone()].join(".");
         let signature = jwt_parts[2];
 
         let w_header_decoded = base64::decode(jwt_parts[0]);
@@ -120,8 +107,6 @@ impl Authentication {
         
         // Base58 encode
         let address = bs58::encode(v_pub_key_h160_checksumed).into_string();
-        
-        println!("2) - {:?}", address);
 
         // Todo: Check payload.iss / address against issuerAddress
         // Todo: Check payload.iat against options.oldestValidTokenTimestamp (1)

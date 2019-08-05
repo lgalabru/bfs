@@ -1,65 +1,68 @@
-use crate::v1;
+use crate::v1::{
+    errors::Error,
+    check_token::CheckToken
+};
 
 #[test]
 fn it_should_fail_if_prefix_other_than_v1() {
     let token = "v2:x".to_string();
-    let mut auth = v1::Authentication::new(token);
-    assert!(auth.validate().unwrap_err() == v1::Error::VersionMismatch);
+    let mut auth = CheckToken::new(token);
+    assert!(auth.validate().unwrap_err() == Error::VersionMismatch);
 }
 
 #[test]
 fn it_should_fail_if_doe_not_include_3_parts() {
     let token = "v1:header.payload".to_string();
-    let mut auth = v1::Authentication::new(token);
-    assert!(auth.validate().unwrap_err() == v1::Error::MalFormattedToken);
+    let mut auth = CheckToken::new(token);
+    assert!(auth.validate().unwrap_err() == Error::MalFormattedToken);
 }
 
 #[test]
 fn it_should_fail_if_can_not_b64_decode_header() {
     let token = "v1:@header.payload.sig".to_string();
-    let mut auth = v1::Authentication::new(token);
+    let mut auth = CheckToken::new(token);
     println!("{:?}", auth.validate().unwrap_err());
-    assert!(auth.validate().unwrap_err() == v1::Error::HeaderEncodingCorrupted);
+    assert!(auth.validate().unwrap_err() == Error::HeaderEncodingCorrupted);
 }
 
 #[test]
 fn it_should_fail_if_can_not_deserialize_header() {
     let token = "v1:eyJhbGciOiJIUzI1NiJx.@.sig".to_string();
-    let mut auth = v1::Authentication::new(token);
+    let mut auth = CheckToken::new(token);
     println!("{:?}", auth.validate().unwrap_err());
-    assert!(auth.validate().unwrap_err() == v1::Error::HeaderDataCorrupted);
+    assert!(auth.validate().unwrap_err() == Error::HeaderDataCorrupted);
 }
 
 #[test]
 fn it_should_fail_if_can_not_b64_decode_payload() {
     let token = "v1:eyJhbGciOiJIUzI1NiJ9.@.sig".to_string();
-    let mut auth = v1::Authentication::new(token);
+    let mut auth = CheckToken::new(token);
     println!("{:?}", auth.validate().unwrap_err());
-    assert!(auth.validate().unwrap_err() == v1::Error::PayloadEncodingCorrupted);
+    assert!(auth.validate().unwrap_err() == Error::PayloadEncodingCorrupted);
 }
 
 #[test]
 fn it_should_fail_if_can_not_deserialize_payload() {
     let token = "v1:eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOxIxIn0.sig".to_string();
-    let mut auth = v1::Authentication::new(token);
+    let mut auth = CheckToken::new(token);
     println!("{:?}", auth.validate().unwrap_err());
-    assert!(auth.validate().unwrap_err() == v1::Error::PayloadDataCorrupted);
+    assert!(auth.validate().unwrap_err() == Error::PayloadDataCorrupted);
 }
 
 #[test]
 fn it_should_fail_if_iss_missing() {
     let token = "v1:eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiIxIn0.sig".to_string();
-    let mut auth = v1::Authentication::new(token);
+    let mut auth = CheckToken::new(token);
     println!("{:?}", auth.validate().unwrap_err());
-    assert!(auth.validate().unwrap_err() == v1::Error::PrincipalMissing);
+    assert!(auth.validate().unwrap_err() == Error::PrincipalMissing);
 }
 
 #[test]
 fn it_should_fail_() {
     let token = "v1:eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIwMjUwODYzYWQ2NGE4N2FlOGEyZmU4M2MxYWYxYTg0MDNjYjUzZjUzZTQ4NmQ4NTExZGFkOGEwNDg4N2U1YjIzNTIifQ.sig".to_string();
-    let mut auth = v1::Authentication::new(token);
+    let mut auth = CheckToken::new(token);
     println!("{:?}", auth.validate().unwrap_err());
-    assert!(auth.validate().unwrap_err() == v1::Error::PrincipalMissing);
+    assert!(auth.validate().unwrap_err() == Error::PrincipalMissing);
 }
 
 
