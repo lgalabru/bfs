@@ -1,0 +1,7 @@
+[package]
+name = "bfs-commands"
+version = "0.1.0"
+authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
+edition = "2018"
+
+[dependencies]
