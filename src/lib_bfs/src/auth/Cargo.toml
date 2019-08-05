@@ -1,10 +1,14 @@
 [package]
-name = "bfs-auth"
+name = "bfs_auth"
 version = "0.1.0"
 authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
 edition = "2018"
 
 [dependencies]
-jsonwebtoken = "6"
-serde_derive = "1"
-serde = "1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
+secp256k1 = "0.15.1"
+base64 = "0.10.1"
+bs58 = "0.2.2"
+sha2 = "0.8.0"
+ripemd160 = "0.8.0"
