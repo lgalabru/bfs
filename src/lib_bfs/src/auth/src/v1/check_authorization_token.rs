@@ -4,21 +4,20 @@ use ripemd160::Ripemd160;
 use bs58;
 use base64;
 use secp256k1::{Secp256k1, Message, Signature, PublicKey};
-use der_parser::parse_der;
 
 use crate::utils;
 use crate::jwt;
 use crate::v1::errors::Error;
 
-pub struct CheckToken {
+pub struct CheckAuthorizationToken {
     /// JWT Token - utf-8 encoded
     token: String
 }
 
-impl CheckToken {
+impl CheckAuthorizationToken {
 
-    pub fn new(token: String) -> CheckToken {
-        CheckToken {
+    pub fn new(token: String) -> CheckAuthorizationToken {
+        CheckAuthorizationToken {
             token
         }
     }

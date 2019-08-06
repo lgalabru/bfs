@@ -1,1 +1,1 @@
-mod v1;
+mod check_authorization_token;

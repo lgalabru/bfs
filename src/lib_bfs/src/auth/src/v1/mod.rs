@@ -1,4 +1,4 @@
-pub mod check_token;
+pub mod check_authorization_token;
 pub mod errors;
 
 #[cfg(test)]
