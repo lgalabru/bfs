@@ -9,14 +9,10 @@ use time::Timespec;
 use fuse::{FileType, FileAttr, Filesystem, Request, ReplyData, ReplyEntry, ReplyAttr, ReplyDirectory};
 use log::Level;
 
-use drivers_aws::s3::S3Driver;
-use drivers::{
-    file::File,
-    driver::{
-        StorageDriver, 
-        ListFilesParams,
-        ListFilesResult
-    }
+use primitives::file::File;
+use commands::{
+    list_files::{ListFilesCommandBuilder, ListFilesCommandHandler},
+    AuthenticationDelegate
 };
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };                     // 1 second
@@ -65,9 +61,25 @@ impl FileAdapter {
     }
 }
 
+struct LocalAuthenticator;
+
+impl LocalAuthenticator {
+    pub fn new() -> LocalAuthenticator {
+        LocalAuthenticator {}
+    }
+}
+
+impl AuthenticationDelegate for LocalAuthenticator {
+    fn get_authorization_token(&self) -> String {
+        println!("Authentication in progress...");
+        "0x1234567890ABCDEF".to_string()
+    }
+}
+
 struct BFS {
     cached_lookup: HashMap<(u32, OsString), FileAttr>,
-    cached_getattr: HashMap<(u32, u64), FileAttr>
+    cached_getattr: HashMap<(u32, u64), FileAttr>,
+    authentication_delegate: LocalAuthenticator
 }
 
 impl Filesystem for BFS {
@@ -84,11 +96,16 @@ impl Filesystem for BFS {
         }
 
         let prefix_path = "/";
-        let params = ListFilesParams {
-            prefix_path: OsString::from(prefix_path),
-            page: None
-        };
-        let wrapped_res = S3Driver::list_files(params);
+        // 
+        let builder = ListFilesCommandBuilder::new(
+            OsString::from(prefix_path),
+            &self.authentication_delegate 
+        );
+        let command = builder.run();
+        //
+        let handler = ListFilesCommandHandler::new(&command);
+        let wrapped_res = handler.run();
+
         if let Err(_e) = wrapped_res {
             // Improve error output
             reply.error(ENOENT);
@@ -173,7 +190,8 @@ fn main() {
     
     let bfs = BFS {
         cached_lookup: HashMap::new(),
-        cached_getattr: HashMap::new()
+        cached_getattr: HashMap::new(),
+        authentication_delegate: LocalAuthenticator::new()
     };
     fuse::mount(bfs, &mountpoint, &options).unwrap();
 }
