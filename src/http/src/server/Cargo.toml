@@ -1,0 +1,13 @@
+[package]
+name = "bfs-http-server"
+version = "0.1.0"
+authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rocket = "0.4.2"
+bfs = { package = "lib-bfs", path = "../../../lib_bfs" }
+commands = { package = "bfs-commands", path = "../../../lib_bfs/src/commands" }
+primitives = { package = "bfs-primitives", path = "../../../lib_bfs/src/primitives" }
