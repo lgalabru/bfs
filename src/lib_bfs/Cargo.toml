@@ -5,8 +5,5 @@ authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
 edition = "2018"
 
 [dependencies]
-auth = { package = "bfs-auth", path = "./src/auth" }
 commands = { package = "bfs-commands", path = "./src/commands" }
 primitives = { package = "bfs-primitives", path = "./src/primitives" }
-drivers = { package = "bfs-drivers", path = "./src/drivers" }
-drivers_aws = { package = "bfs-drivers-aws", path = "./src/drivers/src/aws" }

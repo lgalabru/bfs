@@ -6,12 +6,15 @@ use base64;
 use secp256k1::{Secp256k1, Message, Signature, PublicKey};
 
 use crate::utils;
-use crate::jwt;
+use crate::v1::tokens;
 use crate::v1::errors::Error;
 
 pub struct CheckAuthorizationToken {
-    /// JWT Token - utf-8 encoded
-    token: String
+    token: String,
+    issuer_address: String,
+    valid_hub_urls: Vec<String>,
+    scopes: Vec<String>,
+    challenge_texts: Vec<String>,
 }
 
 impl CheckAuthorizationToken {
@@ -56,7 +59,7 @@ impl CheckAuthorizationToken {
             // Unable to deserialize JWT's header
             return Err(Error::HeaderDataCorrupted);
         }
-        let header: jwt::Header = w_header.unwrap();
+        let header: tokens::authorization::Header = w_header.unwrap();
 
         let w_payload_decoded = base64::decode(jwt_parts[1]);
         if let Err(_) = w_payload_decoded {
@@ -70,7 +73,7 @@ impl CheckAuthorizationToken {
             // Unable to deserialize JWT's payload
             return Err(Error::PayloadDataCorrupted);
         }
-        let payload: jwt::Payload = w_payload.unwrap();
+        let payload: tokens::authorization::Payload = w_payload.unwrap();
 
         if let None = payload.iss {
             // Auth token should be a JWT with at least an `iss` claim

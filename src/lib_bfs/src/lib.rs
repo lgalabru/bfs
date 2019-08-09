@@ -1,4 +1,4 @@
-
+pub use commands;
 
 #[cfg(test)]
 mod tests {

@@ -9,5 +9,4 @@ clap = "2"
 termcolor = "1"
 tokio = "0.1"
 bfs = { package = "lib-bfs", path = "../lib_bfs" }
-drivers_aws = { package = "bfs-drivers-aws", path = "../lib_bfs/src/drivers/src/aws" }
-drivers = { package = "bfs-drivers", path = "../lib_bfs/src/drivers" }
+commands = { package = "bfs-commands", path = "../lib_bfs/src/commands" }

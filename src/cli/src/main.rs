@@ -1,22 +1,42 @@
+use std::ffi::OsString;
+
 use clap::{
     Arg, 
     App,
-    SubCommand, 
-    AppSettings
+    SubCommand
 };
-use drivers_aws::s3::S3Driver;
-use drivers::{
-    driver::StorageDriver, 
-    driver::ListFilesParams
+
+use commands::{
+    list_files::{ListFilesCommandBuilder, ListFilesCommandHandler},
+    AuthenticationDelegate
 };
-use std::ffi::{OsString, OsStr};
 
-use tokio;
+// use termcolor::{
+//     Color, 
+//     ColorChoice, 
+//     ColorSpec, 
+//     StandardStream, 
+//     WriteColor
+// };
 
-use std::process;
-use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+struct LocalAuthenticator;
+
+impl LocalAuthenticator {
+    pub fn new() -> LocalAuthenticator {
+        LocalAuthenticator {}
+    }
+}
+
+impl AuthenticationDelegate for LocalAuthenticator {
+    fn get_authorization_token(&self) -> String {
+        println!("Authentication in progress...");
+        "0x1234567890ABCDEF".to_string()
+    }
+}
 
 fn main() {
+    let authentication_delegate = LocalAuthenticator::new();
+
     let matches = App::new("bfs-cli")
         .about("Blockstack File System")
         .version("1.0")
@@ -51,12 +71,15 @@ fn main() {
                 Some(path) => path,
                 None => "/"
             };
-            println!("Listing files in {}", prefix_path);
-            let params = ListFilesParams {
-                prefix_path: OsString::from(prefix_path),
-                page: None
-            };
-            let res = S3Driver::list_files(params);
+            // 
+            let builder = ListFilesCommandBuilder::new(
+                OsString::from(prefix_path),
+                &authentication_delegate 
+            );
+            let command = builder.run();
+            //
+            let handler = ListFilesCommandHandler::new(&command);
+            let res = handler.run();
             match res {
                 Ok(result) => println!("{:?}", result),
                 Err(e) => println!("Error, {:?}", e)

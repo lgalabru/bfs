@@ -18,6 +18,15 @@ pub struct Header {
     pub typ: Option<String>,
 }
 
+impl Header {
+    pub fn new() -> Header {
+        Header {
+            alg: Some("ES256K".to_string()),
+            typ: Some("JWT".to_string())
+        }
+    }
+}
+
 /// The JWT Claims Set (Payload part) represents a JSON object whose members are the
 /// claims conveyed by the JWT.  The Claim Names within a JWT Claims Set
 /// MUST be unique;
