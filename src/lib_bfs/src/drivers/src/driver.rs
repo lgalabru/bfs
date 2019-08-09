@@ -1,5 +1,5 @@
 use std::ffi::OsString;
-use crate::file::File;
+use primitives::file::File;
 use crate::error::Error;
 
 #[derive(Debug)]

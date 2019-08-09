@@ -1,4 +1,5 @@
 pub use commands;
+pub use primitives;
 
 #[cfg(test)]
 mod tests {

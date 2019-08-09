@@ -1,8 +1,9 @@
 use drivers::{
     error::*, 
-    file::*,
     driver::*
 };
+use primitives::file::File;
+
 use rusoto_core::{Region};
 use rusoto_credential::{
     ProvideAwsCredentials, 
