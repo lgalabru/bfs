@@ -7,6 +7,8 @@ edition = "2018"
 [dependencies]
 clap = "2"
 termcolor = "1"
-tokio = "0.1"
+tokio = "=0.2.0-alpha.1"
+# tokio = { version = "0.1", features = ["async-await-preview"] }
 bfs = { package = "lib-bfs", path = "../lib_bfs" }
 commands = { package = "bfs-commands", path = "../lib_bfs/src/commands" }
+async-trait = "0.1.7"

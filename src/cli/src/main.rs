@@ -1,4 +1,8 @@
+#![feature(async_await)]
+
 use std::ffi::OsString;
+use async_trait::async_trait;
+use tokio;
 
 use clap::{
     Arg, 
@@ -8,7 +12,10 @@ use clap::{
 
 use commands::{
     list_files::{ListFilesCommandBuilder, ListFilesCommandHandler},
-    AuthenticationDelegate
+    AuthenticationDelegate,
+    AuthenticationResult,
+    AuthenticationError,
+    AuthenticationToken
 };
 
 // use termcolor::{
@@ -27,16 +34,16 @@ impl LocalAuthenticator {
     }
 }
 
+#[async_trait]
 impl AuthenticationDelegate for LocalAuthenticator {
-    fn get_authorization_token(&self) -> String {
+    async fn get_authorization_token(&self) -> AuthenticationResult {
         println!("Authentication in progress...");
-        "0x1234567890ABCDEF".to_string()
+        Ok(AuthenticationToken::new("0x1234567890ABCDEF"))
     }
 }
 
-fn main() {
-    let authentication_delegate = LocalAuthenticator::new();
-
+#[tokio::main]
+async fn main() {
     let matches = App::new("bfs-cli")
         .about("Blockstack File System")
         .version("1.0")
@@ -71,19 +78,7 @@ fn main() {
                 Some(path) => path,
                 None => "/"
             };
-            // 
-            let builder = ListFilesCommandBuilder::new(
-                OsString::from(prefix_path),
-                &authentication_delegate 
-            );
-            let command = builder.run();
-            //
-            let handler = ListFilesCommandHandler::new(&command);
-            let res = handler.run();
-            match res {
-                Ok(result) => println!("{:?}", result),
-                Err(e) => println!("Error, {:?}", e)
-            }
+            list_files(prefix_path).await;
         },
         ("rm", Some(clone_matches)) => {
             let path = match clone_matches.value_of("path") {
@@ -111,5 +106,24 @@ fn main() {
         _ => {
             unreachable!();
         }
+    }
+}
+
+async fn list_files(prefix_path: &str) {
+    let authentication_delegate = LocalAuthenticator::new();
+
+    let builder = ListFilesCommandBuilder::new(
+        OsString::from(prefix_path),
+        &authentication_delegate 
+    );
+    let res = builder.run().await;
+
+    let command = res.unwrap();
+    //
+    let handler = ListFilesCommandHandler::new(&command);
+    let res = handler.run();
+    match res {
+        Ok(result) => println!("{:?}", result),
+        Err(e) => println!("Error, {:?}", e)
     }
 }

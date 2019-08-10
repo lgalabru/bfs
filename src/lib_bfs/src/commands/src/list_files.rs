@@ -10,6 +10,14 @@ use drivers::{
 use drivers_aws::s3::S3Driver;
 use crate::{AuthenticationDelegate};
 
+#[derive(Debug)]
+pub enum CommandBuildError {
+    TimeOutError
+}
+
+pub type CommandBuildResult = Result<ListFilesCommand, CommandBuildError>;
+
+
 pub struct ListFilesCommand {
 
     pub prefix_path: OsString, 
@@ -25,12 +33,12 @@ pub struct ListFilesCommandBuilder<'a> {
     
     pub page: Option<u32>,
 
-    authentication_delegate: &'a (AuthenticationDelegate + 'a)
+    authentication_delegate: &'a (dyn AuthenticationDelegate + 'a)
 }
 
 impl <'a> ListFilesCommandBuilder <'a> {
 
-    pub fn new(prefix_path: OsString, authentication_delegate: &'a AuthenticationDelegate) -> ListFilesCommandBuilder {
+    pub fn new(prefix_path: OsString, authentication_delegate: &'a dyn AuthenticationDelegate) -> ListFilesCommandBuilder<'a> {
         ListFilesCommandBuilder {
             prefix_path,
             page: None,
@@ -38,13 +46,18 @@ impl <'a> ListFilesCommandBuilder <'a> {
         }
     }
 
-    pub fn run(&self) -> ListFilesCommand {
-        let authorization_token = self.authentication_delegate.get_authorization_token();
-        ListFilesCommand {
+    pub async fn run(&self) -> CommandBuildResult {
+        let result = self.authentication_delegate.get_authorization_token().await;
+        if let Err(_) = result {
+            return Err(CommandBuildError::TimeOutError)
+        }
+        let authorization_token = result.unwrap().value;
+
+        Ok(ListFilesCommand {
             prefix_path: self.prefix_path.clone(),
             page: self.page,
             authorization_token
-        }
+        })
     }
 }
 

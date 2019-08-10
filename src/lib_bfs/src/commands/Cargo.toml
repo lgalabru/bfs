@@ -9,3 +9,4 @@ serde_derive = "1"
 serde = "1"
 drivers = { package = "bfs-drivers", path = "../drivers" }
 drivers_aws = { package = "bfs-drivers-aws", path = "../drivers/src/aws" }
+async-trait = "0.1.7"
