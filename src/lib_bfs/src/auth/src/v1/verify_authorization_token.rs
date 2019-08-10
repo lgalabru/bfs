@@ -6,22 +6,24 @@ use base64;
 use secp256k1::{Secp256k1, Message, Signature, PublicKey};
 
 use crate::utils;
-use crate::v1::tokens;
+use crate::v1::jwt;
 use crate::v1::errors::Error;
 
-pub struct CheckAuthorizationToken {
+pub struct VerifyAuthorizationToken {
     token: String,
-    issuer_address: String,
-    valid_hub_urls: Vec<String>,
-    scopes: Vec<String>,
-    challenge_texts: Vec<String>,
+    issuer_address: Option<String>,
+    valid_hub_urls: Option<Vec<String>>,
+    challenge_texts: Option<Vec<String>>,
 }
 
-impl CheckAuthorizationToken {
+impl VerifyAuthorizationToken {
 
-    pub fn new(token: String) -> CheckAuthorizationToken {
-        CheckAuthorizationToken {
-            token
+    pub fn new(token: String) -> Self {
+        Self {
+            token,
+            issuer_address: None,
+            valid_hub_urls: None,
+            challenge_texts: None
         }
     }
 
@@ -59,7 +61,7 @@ impl CheckAuthorizationToken {
             // Unable to deserialize JWT's header
             return Err(Error::HeaderDataCorrupted);
         }
-        let header: tokens::authorization::Header = w_header.unwrap();
+        let header: jwt::Header = w_header.unwrap();
 
         let w_payload_decoded = base64::decode(jwt_parts[1]);
         if let Err(_) = w_payload_decoded {
@@ -73,7 +75,7 @@ impl CheckAuthorizationToken {
             // Unable to deserialize JWT's payload
             return Err(Error::PayloadDataCorrupted);
         }
-        let payload: tokens::authorization::Payload = w_payload.unwrap();
+        let payload: jwt::authorization_claims::Payload = w_payload.unwrap();
 
         if let None = payload.iss {
             // Auth token should be a JWT with at least an `iss` claim
@@ -119,7 +121,7 @@ impl CheckAuthorizationToken {
         }
         let compact_sig = w_url_safe_b64_decode.unwrap();
 
-        let signing_input = ([jwt_parts[0].clone(), jwt_parts[1].clone()].join("."));
+        let signing_input = [jwt_parts[0].clone(), jwt_parts[1].clone()].join(".");
         
         // SHA256
         let mut sha2 = Sha256::new();

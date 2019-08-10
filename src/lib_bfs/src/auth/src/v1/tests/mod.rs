@@ -1,1 +1,2 @@
-mod check_authorization_token;
+mod verify_authorization_token;
+mod create_association_token;

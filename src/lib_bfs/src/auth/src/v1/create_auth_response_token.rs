@@ -1,15 +1,10 @@
-use crate::v1::tokens;
+use crate::v1::jwt;
 
 pub struct CreateAuthorizationToken {
     /// App private key: specific for every Blockstack ID and application combination
     app_private_key: String,
-    // User public key
-    user_public_key: String,
-    /// Challenge
-    challenge: String,
-    /// Hub URL
-    hubUrl: String,
-    //
+    /// 
+    transit_public_key: String,
 }
 
 // v1:eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJnYWlhQ2hhbGxlbmdlIjoiW1wiZ2FpYWh1YlwiLFwiMFwiLFwic3RvcmFnZTIuYmxvY2tzdGFjay5vcmdcIixcImJsb2Nrc3RhY2tfc3RvcmFnZV9wbGVhc2Vfc2lnblwiXSIsImh1YlVybCI6Imh0dHBzOi8vaHViLmJsb2Nrc3RhY2sub3JnIiwiaXNzIjoiMDJkY2RiMzk2OTBhMThjNzYxZDVjYmYwZTdmODM2YmVmNTFmNWU1ZjUyZWE3ZDFjZjhiNWYzMzFjNjFmMjc4ZTI2Iiwic2FsdCI6eyJ0eXBlIjoiQnVmZmVyIiwiZGF0YSI6WzQ2LDI1MCw0NCwyMDcsNTIsNDcsMTk0LDExLDE0NywyMjksMTAsOTIsMTYsMTU1LDY2LDEwNl19fQ.Tfv_xrGbkeGocucSAyVbtG8lexBHjceGnKD6FQcPwBXtdHeDfHf7mKCUMSTAoa0adxU1EPKDdPoHfGVCvS2LOw
@@ -34,7 +29,7 @@ impl CreateAuthorizationToken {
 
     pub fn run() -> String {
         // Create header
-        let header = tokens::authorization::Header::new();
+        let header = jwt::Header::new();
         // json encoding
         // base64 encoding
 
@@ -54,6 +49,24 @@ impl CreateAuthorizationToken {
         // Append Sig "header.payload.sig"
     }
 }
+
+
+
+// function makeGaiaAssociationToken(secretKeyHex: string, childPublicKeyHex: string) {
+//   const LIFETIME_SECONDS = 365 * 24 * 3600
+//   const signerKeyHex = secretKeyHex.slice(0, 64)
+//   const compressedPublicKeyHex = getPublicKeyFromPrivate(signerKeyHex)
+//   const salt = randomBytes(16).toString('hex')
+//   const payload = { childToAssociate: childPublicKeyHex,
+//                     iss: compressedPublicKeyHex,
+//                     exp: LIFETIME_SECONDS + (new Date()/1000),
+//                     iat: Date.now()/1000,
+//                     salt }
+
+//   const token = new TokenSigner('ES256K', signerKeyHex).sign(payload)
+//   return token
+// }
+
 
 
 

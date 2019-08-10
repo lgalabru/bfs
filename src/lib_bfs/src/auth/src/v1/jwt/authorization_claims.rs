@@ -1,36 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// JSON Web Token (JWT) is a compact, URL-safe means of representing
-/// claims to be transferred between two parties.  The claims in a JWT
-/// are encoded as a JSON object that is used as the payload of a JSON
-/// Web Signature (JWS) structure or as the plaintext of a JSON Web
-/// Encryption (JWE) structure, enabling the claims to be digitally
-/// signed or integrity protected with a Message Authentication Code
-/// (MAC) and/or encrypted.
-/// https://tools.ietf.org/html/rfc7519
-
-
-#[derive(Serialize, Deserialize)]
-pub struct Header {
-    /// Algorithms used (https://tools.ietf.org/html/rfc7518#section-3)
-    pub alg: Option<String>,
-    /// Media type (http://www.iana.org/assignments/media-types/media-types.xhtml) of this complete JWT.
-    pub typ: Option<String>,
-}
-
-impl Header {
-    pub fn new() -> Header {
-        Header {
-            alg: Some("ES256K".to_string()),
-            typ: Some("JWT".to_string())
-        }
-    }
-}
-
-/// The JWT Claims Set (Payload part) represents a JSON object whose members are the
-/// claims conveyed by the JWT.  The Claim Names within a JWT Claims Set
-/// MUST be unique;
-/// https://tools.ietf.org/html/rfc7519#section-4
+/// JWT Claims Set for "Authorization tokens"
 #[derive(Serialize, Deserialize)]
 pub struct Payload {
     /// Principal that issued the JWT.
@@ -47,7 +17,7 @@ pub struct Payload {
     pub scopes: Option<Vec<AuthScope>>,
     /// App specific:
     pub gaiaChallenge: Option<String>,
-    /// App specific:
+    /// Add some salt to limit replay attacks
     pub salt: Option<Salt>,
     /// App specific:
     pub hubUrl: Option<String>,
