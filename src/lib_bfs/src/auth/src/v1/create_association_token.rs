@@ -1,6 +1,5 @@
 use secp256k1::{Secp256k1, Message, SecretKey, PublicKey};
 use sha2::{Sha256, Digest};
-use rand::{Rng, thread_rng};
 use base64;
 use hex;
 use crate::v1::errors::Error;
@@ -28,14 +27,8 @@ impl CreateAssociationToken {
         // Compute public key
         let (user_public_key, user_secret_key) = self.get_user_key_pair()?;
 
-        // Generate Salt
-        let mut rng = thread_rng();
-        let mut salt = [0u8; 16];
-        rng.fill(&mut salt);
-        let salt_hex = hex::encode(&salt);
-
         // Build AssociationPayload:
-        let payload = jwt::association_claims::Payload::new(user_public_key, self.app_public_key.clone(), salt_hex);
+        let payload = jwt::association_claims::Payload::new(user_public_key, self.app_public_key.clone());
         let w_payload_json = serde_json::to_string(&payload);
         if let Err(_) = w_payload_json {
             // Unable to serialize JWT's payload
