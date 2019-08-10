@@ -1,33 +1,42 @@
-#![feature(proc_macro_hygiene, decl_macro)]
+#![feature(async_await)]
 
-#[macro_use] extern crate rocket;
+use async_trait::async_trait;
+use tokio;
 
 use std::ffi::OsString;
 
 use commands::{
-    list_files::{ListFilesCommandBuilder, ListFilesCommandHandler},
-    AuthenticationDelegate
+    list_files::{
+        ListFilesCommandBuilder, 
+        ListFilesCommandHandler
+    },
+    AuthenticationDelegate,
+    AuthenticationResult,
+    AuthenticationError,
+    AuthenticationToken
 };
 
-struct WebAuthenticator;
+use hyper::{Body, Request, Response, Server};
+use hyper::service::{make_service_fn, service_fn};
 
-impl WebAuthenticator {
-    pub fn new() -> WebAuthenticator {
-        WebAuthenticator {}
+struct HTTPHeaderAuthenticator;
+
+impl HTTPHeaderAuthenticator {
+    pub fn new() -> LocalAuthenticator {
+        LocalAuthenticator {}
     }
 }
 
-impl AuthenticationDelegate for WebAuthenticator {
-    fn get_authorization_token(&self) -> String {
+#[async_trait]
+impl AuthenticationDelegate for HTTPHeaderAuthenticator {
+    async fn get_authorization_token(&self) -> AuthenticationResult {
         println!("Authentication in progress...");
-        "0x1234567890ABCDEF".to_string()
+        Ok(AuthenticationToken::new("0x1234567890ABCDEF"))
     }
 }
 
-#[get("/")]
-fn index() -> String {
-
-    let authentication_delegate = WebAuthenticator::new();
+async fn hello(_: Request<Body>) -> Result<Response<Body>, hyper::Error> {
+    let authentication_delegate = HeaderAuthenticator::new();
 
     let prefix_path = "/";
     //
@@ -35,9 +44,12 @@ fn index() -> String {
         OsString::from(prefix_path),
         &authentication_delegate 
     );
-    let command = builder.run();
+    let res = builder.run().await;
+
+    let command = res.unwrap();
     //
     let handler = ListFilesCommandHandler::new(&command);
+
     let wrapped_res = handler.run();
 
     let res = match wrapped_res {
@@ -45,9 +57,28 @@ fn index() -> String {
         Err(e) => format!("Error, {:?}", e).clone()
     };
 
-    res
+    Ok(Response::new(Body::from(res)))
 }
 
-fn main() {
-    rocket::ignite().mount("/", routes![index]).launch();
+#[tokio::main]
+pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pretty_env_logger::init();
+
+    let addr = ([127, 0, 0, 1], 3000).into();
+
+    let server = Server::bind(&addr)
+        .serve(make_service_fn(|_| {
+            // This is the `Service` that will handle the connection.
+            // `service_fn` is a helper to convert a function that
+            // returns a Response into a `Service`.
+            async {
+                Ok::<_, hyper::Error>(service_fn(hello))
+            }
+        }));
+
+    println!("Listening on http://{}", addr);
+
+    server.await?;
+
+    Ok(())
 }

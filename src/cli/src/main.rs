@@ -11,7 +11,10 @@ use clap::{
 };
 
 use commands::{
-    list_files::{ListFilesCommandBuilder, ListFilesCommandHandler},
+    list_files::{
+        ListFilesCommandBuilder, 
+        ListFilesCommandHandler
+    },
     AuthenticationDelegate,
     AuthenticationResult,
     AuthenticationError,

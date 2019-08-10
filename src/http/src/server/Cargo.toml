@@ -7,7 +7,9 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = "0.4.2"
+hyper = "0.12.33"
+tokio = "=0.2.0-alpha.1"
 bfs = { package = "lib-bfs", path = "../../../lib_bfs" }
 commands = { package = "bfs-commands", path = "../../../lib_bfs/src/commands" }
 primitives = { package = "bfs-primitives", path = "../../../lib_bfs/src/primitives" }
+async-trait = "0.1.7"
