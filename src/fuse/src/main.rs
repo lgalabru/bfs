@@ -1,3 +1,4 @@
+#![feature(async_await)]
 #[macro_use] extern crate log;
 extern crate env_logger;
 
@@ -9,10 +10,23 @@ use time::Timespec;
 use fuse::{FileType, FileAttr, Filesystem, Request, ReplyData, ReplyEntry, ReplyAttr, ReplyDirectory};
 use log::Level;
 
-use primitives::file::File;
+use async_trait::async_trait;
+use tokio::runtime::Runtime;
+
+use primitives::{
+    file::{
+        File, 
+        ListFilesResult
+    },
+    errors::Error
+};
+
 use commands::{
     list_files::{ListFilesCommandBuilder, ListFilesCommandHandler},
-    AuthenticationDelegate
+    AuthenticationDelegate,
+    AuthenticationResult,
+    AuthenticationError,
+    AuthenticationToken
 };
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };                     // 1 second
@@ -69,17 +83,36 @@ impl LocalAuthenticator {
     }
 }
 
+#[async_trait]
 impl AuthenticationDelegate for LocalAuthenticator {
-    fn get_authorization_token(&self) -> String {
+    async fn get_authorization_token(&self) -> AuthenticationResult {
         println!("Authentication in progress...");
-        "0x1234567890ABCDEF".to_string()
+        Ok(AuthenticationToken::new("0x1234567890ABCDEF"))
     }
 }
 
 struct BFS {
     cached_lookup: HashMap<(u32, OsString), FileAttr>,
     cached_getattr: HashMap<(u32, u64), FileAttr>,
-    authentication_delegate: LocalAuthenticator
+    authentication_delegate: LocalAuthenticator,
+}
+
+impl BFS {
+
+    async fn list_files(&mut self, prefix_path: &str) -> Result<ListFilesResult, Error>{
+        let builder = ListFilesCommandBuilder::new(
+            OsString::from(prefix_path),
+            &self.authentication_delegate 
+        );
+
+
+        let res = builder.run().await;
+
+        let command = res.unwrap();
+
+        let handler = ListFilesCommandHandler::new(&command);
+        handler.run()
+    }
 }
 
 impl Filesystem for BFS {
@@ -95,44 +128,41 @@ impl Filesystem for BFS {
             return;
         }
 
-        let prefix_path = "/";
-        // 
-        let builder = ListFilesCommandBuilder::new(
-            OsString::from(prefix_path),
-            &self.authentication_delegate 
-        );
-        let command = builder.run();
-        //
-        let handler = ListFilesCommandHandler::new(&command);
-        let wrapped_res = handler.run();
+        let rt = Runtime::new().unwrap();
+        rt.block_on(async {
 
-        if let Err(_e) = wrapped_res {
-            // Improve error output
-            reply.error(ENOENT);
-            return
-        }
-        let files = wrapped_res.unwrap().files;
+            let prefix_path = "/";
 
-        if offset == 0 {
-            reply.add(1, 0, FileType::Directory, ".");
-            reply.add(1, 1, FileType::Directory, "..");
-        }
+            let result = self.list_files(prefix_path).await;
         
-        let to_skip = if offset == 0 { offset } else { offset + 1 } as usize;
-        for (i, file) in files.into_iter().enumerate().skip(to_skip) {
-            let index = i + 2;
-            reply.add(
-                index as u64, 
-                index as i64, 
-                FileType::RegularFile, 
-                file.name.as_os_str());
-            let file_attr = FileAdapter::convert(&file, index as u64);
-            self.cached_lookup.insert((req.uid(), file.name), file_attr);
-            self.cached_getattr.insert((req.uid(), index as u64), file_attr);
-        }
+            if let Err(_e) = result {
+                // Improve error output
+                reply.error(ENOENT);
+                return
+            }
+            let files = result.unwrap().files;
 
-        error!("readdir: {} files", self.cached_lookup.len());
-        reply.ok();
+            if offset == 0 {
+                reply.add(1, 0, FileType::Directory, ".");
+                reply.add(1, 1, FileType::Directory, "..");
+            }
+            
+            let to_skip = if offset == 0 { offset } else { offset + 1 } as usize;
+            for (i, file) in files.into_iter().enumerate().skip(to_skip) {
+                let index = i + 2;
+                reply.add(
+                    index as u64, 
+                    index as i64, 
+                    FileType::RegularFile, 
+                    file.name.as_os_str());
+                let file_attr = FileAdapter::convert(&file, index as u64);
+                self.cached_lookup.insert((req.uid(), file.name), file_attr);
+                self.cached_getattr.insert((req.uid(), index as u64), file_attr);
+            }
+
+            error!("readdir: {} files", self.cached_lookup.len());
+            reply.ok();
+        });
     }
 
     fn lookup(&mut self, req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
@@ -187,7 +217,7 @@ fn main() {
         .iter()
         .map(|o| o.as_ref())
         .collect::<Vec<&OsStr>>();
-    
+
     let bfs = BFS {
         cached_lookup: HashMap::new(),
         cached_getattr: HashMap::new(),

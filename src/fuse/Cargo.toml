@@ -14,3 +14,5 @@ env_logger = "0.6.0"
 bfs = { package = "lib-bfs", path = "../lib_bfs" }
 commands = { package = "bfs-commands", path = "../lib_bfs/src/commands" }
 primitives = { package = "bfs-primitives", path = "../lib_bfs/src/primitives" }
+tokio = "=0.2.0-alpha.1"
+async-trait = "0.1.7"

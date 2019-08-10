@@ -31,3 +31,35 @@ impl File {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct TearUpResult;
+
+#[derive(Debug)]
+pub struct TearDownResult {
+}
+
+#[derive(Debug)]
+pub struct ListFilesResult {
+    pub files: Vec<File>
+}
+
+#[derive(Debug)]
+pub struct CreateFileResult {
+    pub file: File
+}
+
+#[derive(Debug)]
+pub struct ReadFileResult {
+    pub file: File
+}
+
+#[derive(Debug)]
+pub struct UpdateFileResult {
+    pub file: File
+}
+
+#[derive(Debug)]
+pub struct DeleteFileResult {
+    pub file: File
+}

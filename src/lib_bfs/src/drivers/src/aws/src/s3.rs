@@ -1,8 +1,19 @@
 use drivers::{
-    error::*, 
     driver::*
 };
-use primitives::file::File;
+use primitives::{
+    file::{
+        File,
+        TearUpResult,
+        TearDownResult,
+        ListFilesResult,
+        CreateFileResult,
+        ReadFileResult,
+        UpdateFileResult,
+        DeleteFileResult
+    },
+    errors::Error
+};
 
 use rusoto_core::{Region};
 use rusoto_credential::{
@@ -234,41 +245,41 @@ impl StorageDriver for S3Driver {
         }
     }
 
-    fn lock_file(params: LockFileParams) -> Result<LockFileResult, Error> {
-        let credentials = ProfileProvider::new()
-            .unwrap()
-            .credentials()
-            .wait()
-            .unwrap();
+    // fn lock_file(params: LockFileParams) -> Result<LockFileResult, Error> {
+    //     let credentials = ProfileProvider::new()
+    //         .unwrap()
+    //         .credentials()
+    //         .wait()
+    //         .unwrap();
 
-        let client = S3Client::new(Region::UsEast1);
-        let bucket = format!("gaia-faas-attachmentsbucket-pyy40p399aff");
+    //     let client = S3Client::new(Region::UsEast1);
+    //     let bucket = format!("gaia-faas-attachmentsbucket-pyy40p399aff");
 
-        let mut lock_request = DeleteObjectRequest::default();
-        lock_request.bucket = bucket.to_string();
+    //     let mut lock_request = DeleteObjectRequest::default();
+    //     lock_request.bucket = bucket.to_string();
 
-        Ok(LockFileResult {
-            file: params.file,
-            token: vec![]
-        })
-    }
+    //     Ok(LockFileResult {
+    //         file: params.file,
+    //         token: vec![]
+    //     })
+    // }
 
-    fn unlock_file(params: UnlockFileParams) -> Result<UnlockFileResult, Error> {
-        let credentials = ProfileProvider::new()
-            .unwrap()
-            .credentials()
-            .wait()
-            .unwrap();
+    // fn unlock_file(params: UnlockFileParams) -> Result<UnlockFileResult, Error> {
+    //     let credentials = ProfileProvider::new()
+    //         .unwrap()
+    //         .credentials()
+    //         .wait()
+    //         .unwrap();
 
-        let client = S3Client::new(Region::UsEast1);
-        let bucket = format!("gaia-faas-attachmentsbucket-pyy40p399aff");
+    //     let client = S3Client::new(Region::UsEast1);
+    //     let bucket = format!("gaia-faas-attachmentsbucket-pyy40p399aff");
 
-        let mut unlock_request = DeleteObjectRequest::default();
-        unlock_request.bucket = bucket.to_string();
+    //     let mut unlock_request = DeleteObjectRequest::default();
+    //     unlock_request.bucket = bucket.to_string();
 
-        Ok(UnlockFileResult {
-            file: params.file
-        })
-    }
+    //     Ok(UnlockFileResult {
+    //         file: params.file
+    //     })
+    // }
 }
 

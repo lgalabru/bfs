@@ -2,11 +2,15 @@ use std::ffi::{OsString};
 use drivers::{
     driver::{
         StorageDriver,
-        ListFilesParams,
-        ListFilesResult,
-    },
-    error::Error
+        ListFilesParams
+    }
 };
+
+use primitives::{
+    file::ListFilesResult,
+    errors::Error
+};
+
 use drivers_aws::s3::S3Driver;
 use crate::{AuthenticationDelegate};
 

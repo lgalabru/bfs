@@ -1,50 +1,17 @@
 use std::ffi::OsString;
-use primitives::file::File;
-use crate::error::Error;
-
-#[derive(Debug)]
-pub struct TearUpResult;
-
-#[derive(Debug)]
-pub struct TearDownResult {
-}
-
-#[derive(Debug)]
-pub struct ListFilesResult {
-    pub files: Vec<File>
-}
-
-#[derive(Debug)]
-pub struct CreateFileResult {
-    pub file: File
-}
-
-#[derive(Debug)]
-pub struct ReadFileResult {
-    pub file: File
-}
-
-#[derive(Debug)]
-pub struct LockFileResult {
-    pub file: File,
-
-    pub token: Vec<u8>
-}
-
-#[derive(Debug)]
-pub struct UnlockFileResult {
-    pub file: File
-}
-
-#[derive(Debug)]
-pub struct UpdateFileResult {
-    pub file: File
-}
-
-#[derive(Debug)]
-pub struct DeleteFileResult {
-    pub file: File
-}
+use primitives::{
+    file::{
+        File,
+        TearUpResult,
+        TearDownResult,
+        ListFilesResult,
+        CreateFileResult,
+        ReadFileResult,
+        UpdateFileResult,
+        DeleteFileResult
+    },
+    errors::Error
+};
 
 #[derive(Debug)]
 pub struct TearUpParams;
@@ -86,20 +53,6 @@ pub struct UpdateFileParams {
 }
 
 #[derive(Debug)]
-pub struct LockFileParams {
-    pub file: File,
-
-    pub time_out: i8
-}
-
-#[derive(Debug)]
-pub struct UnlockFileParams {
-    pub file: File,
-
-    pub token: Vec<u8>
-}
-
-#[derive(Debug)]
 pub struct DeleteFileParams {
     pub file: File
 }
@@ -119,8 +72,4 @@ pub trait StorageDriver {
     fn update_file(params: UpdateFileParams) -> Result<UpdateFileResult, Error>;
 
     fn delete_file(params: DeleteFileParams) -> Result<DeleteFileResult, Error>;
-
-    fn lock_file(params: LockFileParams) -> Result<LockFileResult, Error>;
-
-    fn unlock_file(params: UnlockFileParams) -> Result<UnlockFileResult, Error>;
 }
