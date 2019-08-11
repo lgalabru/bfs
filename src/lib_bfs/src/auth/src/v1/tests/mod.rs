@@ -1,2 +1,3 @@
 mod verify_authorization_token;
 mod create_association_token;
+mod create_app_keypair;

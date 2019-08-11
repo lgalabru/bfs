@@ -12,6 +12,7 @@ pub enum Error {
     SignatureEncodingCorrupted,
     ///
     SecretKeyCorrupted,
-    PublicKeyCorrupted
+    PublicKeyCorrupted,
+    KeyDerivationFailed
 }
 
