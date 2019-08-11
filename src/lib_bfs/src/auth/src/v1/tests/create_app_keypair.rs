@@ -13,9 +13,6 @@ fn should_() {
     let app_domain = "https://amazing.app:443";
     let expected_app_address = "1A9NEhnXq5jDp9BRT4DrwadRP5jbBK896X";
 
-    // let private_key = "KwrqqB8bofQU9EDS3rfhDpBVdNBm17e1rYQWuaxfgeN924DgQLRK";
-    let private_key = "L2fobH8cCSmo9bFzM7Cx9pG9s9TjJmW8FrARNpe5WT2LCRus78Wv";
-
     let mut command = CreateAppKeypair::new(bip39_seed.to_string(), app_domain.to_string());
     command.run().unwrap();
     println!("{:?}", expected_salt);
