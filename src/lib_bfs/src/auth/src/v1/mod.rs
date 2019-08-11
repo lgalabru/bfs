@@ -5,6 +5,7 @@ pub mod verify_authorization_token;
 pub mod errors;
 pub mod types;
 mod jwt;
+mod helpers;
 
 #[cfg(test)]
 mod tests;
