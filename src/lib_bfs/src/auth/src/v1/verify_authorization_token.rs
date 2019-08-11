@@ -4,10 +4,16 @@ use ripemd160::Ripemd160;
 use bs58;
 use base64;
 use secp256k1::{Secp256k1, Message, Signature, PublicKey};
+use hex;
 
 use crate::utils;
-use crate::v1::jwt;
-use crate::v1::errors::Error;
+use crate::v1::{
+    jwt::{
+        Header,
+        authorization_claims::Payload
+    },
+    errors::Error
+};
 
 pub struct VerifyAuthorizationToken {
     // todo(ludo): add description
@@ -31,11 +37,6 @@ impl VerifyAuthorizationToken {
         }
     }
 
-    pub fn verify() -> Result<(), Error> {
-
-        Ok(())
-    }
-
     pub fn validate(&mut self) -> Result<(), Error> {
         let version_prefix = "v1:";
         let (version, jwt_token) = self.token.split_at(version_prefix.len());
@@ -54,33 +55,37 @@ impl VerifyAuthorizationToken {
         let signing_input = [jwt_parts[0].clone(), jwt_parts[1].clone()].join(".");
         let signature = jwt_parts[2];
 
-        let w_header_decoded = base64::decode(jwt_parts[0]);
-        if let Err(_) = w_header_decoded {
-            // Unable to base64 decode JWT's header
-            return Err(Error::HeaderEncodingCorrupted);
-        }
-        let header_decoded = w_header_decoded.unwrap();
+        let header: Header = {
+            let w_header_decoded = base64::decode(jwt_parts[0]);
+            if let Err(_) = w_header_decoded {
+                // Unable to base64 decode JWT's header
+                return Err(Error::HeaderEncodingCorrupted);
+            }
+            let header_decoded = w_header_decoded.unwrap();
 
-        let w_header = serde_json::from_slice(&header_decoded[..]);
-        if let Err(_) = w_header {
-            // Unable to deserialize JWT's header
-            return Err(Error::HeaderDataCorrupted);
-        }
-        let header: jwt::Header = w_header.unwrap();
+            let w_header = serde_json::from_slice(&header_decoded[..]);
+            if let Err(_) = w_header {
+                // Unable to deserialize JWT's header
+                return Err(Error::HeaderDataCorrupted);
+            }
+            w_header.unwrap()
+        };
 
-        let w_payload_decoded = base64::decode(jwt_parts[1]);
-        if let Err(_) = w_payload_decoded {
-            // Unable to base64 decode JWT's payload
-            return Err(Error::PayloadEncodingCorrupted);
-        }
-        let payload_decoded = w_payload_decoded.unwrap();
+        let payload: Payload = {
+            let w_payload_decoded = base64::decode(jwt_parts[1]);
+            if let Err(_) = w_payload_decoded {
+                // Unable to base64 decode JWT's payload
+                return Err(Error::PayloadEncodingCorrupted);
+            }
+            let payload_decoded = w_payload_decoded.unwrap();
 
-        let w_payload = serde_json::from_slice(&payload_decoded[..]);
-        if let Err(_) = w_payload {
-            // Unable to deserialize JWT's payload
-            return Err(Error::PayloadDataCorrupted);
-        }
-        let payload: jwt::authorization_claims::Payload = w_payload.unwrap();
+            let w_payload = serde_json::from_slice(&payload_decoded[..]);
+            if let Err(_) = w_payload {
+                // Unable to deserialize JWT's payload
+                return Err(Error::PayloadDataCorrupted);
+            }
+            w_payload.unwrap()
+        };
 
         if let None = payload.iss {
             // Auth token should be a JWT with at least an `iss` claim
@@ -88,56 +93,61 @@ impl VerifyAuthorizationToken {
         }
 
         let pub_key = payload.iss.unwrap();
+        let pub_key_hex = hex::decode(&pub_key).unwrap();
 
-        // Get bytes
-        let pub_key_hex = utils::hex_bytes(&pub_key).unwrap();
+        let address = {
+            // SHA256
+            let mut sha2 = Sha256::new();
+            sha2.input(pub_key_hex.clone());
+            let pub_key_hashed = sha2.result();
 
-        // SHA256
-        let mut sha2 = Sha256::new();
-        sha2.input(pub_key_hex.clone());
-        let pub_key_hashed = sha2.result();
+            // RIPEMD160
+            let mut rmd = Ripemd160::new();
+            let mut pub_key_h160 = [0u8; 20];
+            rmd.input(pub_key_hashed);
+            pub_key_h160.copy_from_slice(rmd.result().as_slice());
 
-        // RIPEMD160
-        let mut rmd = Ripemd160::new();
-        let mut pub_key_h160 = [0u8; 20];
-        rmd.input(pub_key_hashed);
-        pub_key_h160.copy_from_slice(rmd.result().as_slice());
-
-        // Prepend version byte
-        let version_byte = [0]; // MAINNET_SINGLESIG
-        let v_pub_key_h160 = [&version_byte[..], &pub_key_h160[..]].concat();
-        
-        // Append checksum
-        let mut sha2_1 = Sha256::new();
-        sha2_1.input(v_pub_key_h160.clone());
-        let mut sha2_2 = Sha256::new();
-        sha2_2.input(sha2_1.result().as_slice());
-        let checksum = sha2_2.result();
-        let v_pub_key_h160_checksumed = [&v_pub_key_h160[..], &checksum[0..4]].concat();
-        
-        // Base58 encode
-        let address = bs58::encode(v_pub_key_h160_checksumed).into_string();
+            // Prepend version byte
+            let version_byte = [0]; // MAINNET_SINGLESIG
+            let v_pub_key_h160 = [&version_byte[..], &pub_key_h160[..]].concat();
+            
+            // Append checksum
+            let mut sha2_1 = Sha256::new();
+            sha2_1.input(v_pub_key_h160.clone());
+            let mut sha2_2 = Sha256::new();
+            sha2_2.input(sha2_1.result().as_slice());
+            let checksum = sha2_2.result();
+            let v_pub_key_h160_checksumed = [&v_pub_key_h160[..], &checksum[0..4]].concat();
+            
+            // Base58 encode
+            bs58::encode(v_pub_key_h160_checksumed).into_string()
+        };
 
         // Check Signature
-        let w_url_safe_b64_decode = base64::decode_config(&signature, base64::URL_SAFE);
-        if let Err(_) = w_url_safe_b64_decode {
-            // Unable to base64 decode JWT's payload
-            return Err(Error::SignatureEncodingCorrupted);
-        }
-        let compact_sig = w_url_safe_b64_decode.unwrap();
+        let sig_verification = {
+            let w_url_safe_b64_decode = base64::decode_config(&signature, base64::URL_SAFE);
+            if let Err(_) = w_url_safe_b64_decode {
+                // Unable to base64 decode JWT's payload
+                return Err(Error::SignatureEncodingCorrupted);
+            }
+            let compact_sig = w_url_safe_b64_decode.unwrap();
 
-        let signing_input = [jwt_parts[0].clone(), jwt_parts[1].clone()].join(".");
-        
-        // SHA256
-        let mut sha2 = Sha256::new();
-        sha2.input(signing_input.clone());
-        let signing_input_hashed = sha2.result();
+            let signing_input = [jwt_parts[0].clone(), jwt_parts[1].clone()].join(".");
+            
+            // SHA256
+            let mut sha2 = Sha256::new();
+            sha2.input(signing_input.clone());
+            let signing_input_hashed = sha2.result();
 
-        let secp = Secp256k1::verification_only();
-        let public_key = PublicKey::from_slice(&pub_key_hex).expect("public keys must be 33 or 65 bytes, serialized according to SEC 2");
-        let message = Message::from_slice(&signing_input_hashed).expect("messages must be 32 bytes and are expected to be hashes");
-        let sig = Signature::from_compact(&compact_sig).expect("compact signatures are 64 bytes;");
-        assert!(secp.verify(&message, &sig, &public_key).is_ok());
+            // Verify signature
+            let secp = Secp256k1::verification_only();
+            let public_key = PublicKey::from_slice(&pub_key_hex).expect("public keys must be 33 or 65 bytes, serialized according to SEC 2");
+            let message = Message::from_slice(&signing_input_hashed).expect("messages must be 32 bytes and are expected to be hashes");
+            let sig = Signature::from_compact(&compact_sig).expect("compact signatures are 64 bytes;");
+            secp.verify(&message, &sig, &public_key)
+        };
+
+        assert!(sig_verification.is_ok());
 
         // todo(ludo): Check payload.iss / address against issuerAddress
         // todo(ludo): Check payload.iat against options.oldestValidTokenTimestamp (1)
