@@ -35,7 +35,9 @@ impl Payload {
 
         Self {
             jti: Some(uuid),
+            // todo(ludo): set issued at
             iat: Some(0),
+            // todo(ludo): set expiration
             exp: Some(0),
             iss: Some(user_public_key),
             childToAssociate: Some(app_public_key),

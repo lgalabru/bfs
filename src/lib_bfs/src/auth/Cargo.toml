@@ -14,4 +14,6 @@ sha2 = "0.8.0"
 ripemd160 = "0.8.0"
 uuid = { version = "0.7", features = ["v4"] }
 rand = "0.7.0"
+# todo(ludo): crates added as shortcuts - should be re-implemented
+hdwallet = "0.2.2" 
 hex = "0.3.2"

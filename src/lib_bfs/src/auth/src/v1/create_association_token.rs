@@ -27,7 +27,7 @@ impl CreateAssociationToken {
         // Compute public key
         let (user_public_key, user_secret_key) = self.get_user_key_pair()?;
 
-        // Build AssociationPayload:
+        // Build AssociationPayload
         let payload = jwt::association_claims::Payload::new(user_public_key, self.app_public_key.clone());
         let w_payload_json = serde_json::to_string(&payload);
         if let Err(_) = w_payload_json {
@@ -47,6 +47,7 @@ impl CreateAssociationToken {
         let header_json = w_header_json.unwrap();
         let header_b64 = base64::encode_config(&header_json, base64::URL_SAFE_NO_PAD);
 
+        // todo(ludo): merge slices instead
         let signing_input = [header_b64, payload_b64].join(".");
 
         // SHA256
@@ -54,6 +55,7 @@ impl CreateAssociationToken {
         sha2.input(signing_input.clone());
         let signing_input_hashed = sha2.result();
 
+        // todo(ludo): scope secp (signature only)
         let secp = Secp256k1::new();
         let message = Message::from_slice(&signing_input_hashed).expect("32 bytes");
         let sig = secp.sign(&message, &user_secret_key);
@@ -74,6 +76,7 @@ impl CreateAssociationToken {
         let suffix_len: usize;
         let mut should_compress = false;
 
+        // todo(ludo): Improve legibility
         if len == 32 + 4 + 1 + 1 {
             suffix_len = 5;
             should_compress = true;
@@ -84,8 +87,8 @@ impl CreateAssociationToken {
         }
         let sk = &sk_checksumed[1..len-suffix_len];
 
-        // Should handle checksum
-        // Should handle 0x80
+        // todo(ludo): Should handle checksum
+        // todo(ludo): Should handle 0x80
 
         Ok(sk.to_vec())
     }
@@ -93,6 +96,7 @@ impl CreateAssociationToken {
     pub fn get_user_key_pair(&self) -> Result<(String, secp256k1::key::SecretKey), Error> {
         let secret_key = self.decoded_user_secret_key()?;
 
+        // todo(ludo): scope secp
         let secp = Secp256k1::new();
         let sk = SecretKey::from_slice(&secret_key).expect("32 bytes, within curve order");
         let pk = PublicKey::from_secret_key(&secp, &sk);

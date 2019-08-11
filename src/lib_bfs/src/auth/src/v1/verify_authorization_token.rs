@@ -10,9 +10,13 @@ use crate::v1::jwt;
 use crate::v1::errors::Error;
 
 pub struct VerifyAuthorizationToken {
+    // todo(ludo): add description
     token: String,
+    // todo(ludo): add description
     issuer_address: Option<String>,
+    // todo(ludo): add description
     valid_hub_urls: Option<Vec<String>>,
+    // todo(ludo): add description
     challenge_texts: Option<Vec<String>>,
 }
 
@@ -46,6 +50,7 @@ impl VerifyAuthorizationToken {
             return Err(Error::MalFormattedToken);
         }
 
+        // todo(ludo): merge slices instead?
         let signing_input = [jwt_parts[0].clone(), jwt_parts[1].clone()].join(".");
         let signature = jwt_parts[2];
 
@@ -134,13 +139,13 @@ impl VerifyAuthorizationToken {
         let sig = Signature::from_compact(&compact_sig).expect("compact signatures are 64 bytes;");
         assert!(secp.verify(&message, &sig, &public_key).is_ok());
 
-        // Todo: Check payload.iss / address against issuerAddress
-        // Todo: Check payload.iat against options.oldestValidTokenTimestamp (1)
-        // Todo: Check payload.hubUrl against options.validHubUrls
-        // Todo: Check payload.scopes
-        // Todo: Check payload.gaiaChallenge against challengeTexts
-        // Todo: Check payload.exp against time.now
-        // Todo: Check payload.associationToken
+        // todo(ludo): Check payload.iss / address against issuerAddress
+        // todo(ludo): Check payload.iat against options.oldestValidTokenTimestamp (1)
+        // todo(ludo): Check payload.hubUrl against options.validHubUrls
+        // todo(ludo): Check payload.scopes
+        // todo(ludo): Check payload.gaiaChallenge against challengeTexts
+        // todo(ludo): Check payload.exp against time.now
+        // todo(ludo): Check payload.associationToken
 
         Ok(())
     }
