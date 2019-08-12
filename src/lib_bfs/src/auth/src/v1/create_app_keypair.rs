@@ -33,7 +33,7 @@ impl CreateAppKeypair {
     }
 
     // todo(ludo): comment all the public methods
-    pub fn run(&mut self) -> Result<(SecretKey, String, String), Error> {
+    pub fn run(&mut self) -> Result<(Vec<u8>, String, String), Error> {
 
         let (master_node_bytes, chain_code) = get_master_node_from_bip39_seed(&self.user_bip39_seed);
         let master_node = SecretKey::from_slice(&master_node_bytes).unwrap();
@@ -113,8 +113,9 @@ impl CreateAppKeypair {
             bs58::encode(v_pub_key_h160_checksumed).into_string()
         };
 
-        let public_key_hex = hex::encode(&public_key);
+        let sk = hex::decode(&app_node.to_string()).unwrap();
+        let pk = hex::encode(&public_key);
 
-        Ok((app_node, public_key_hex, address.to_string()))
+        Ok((sk, pk, address.to_string()))
     }
 }

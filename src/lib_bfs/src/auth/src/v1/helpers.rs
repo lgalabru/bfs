@@ -6,13 +6,16 @@ use hex;
 pub fn get_hardened_child_keypair(bip39_seed: &str, path: &[u32]) -> Result<(Vec<u8>, String), Error> {
     let (master_node_bytes, chain_code) = get_master_node_from_bip39_seed(&bip39_seed);
     let master_node = SecretKey::from_slice(&master_node_bytes).unwrap();
-    let (first_hardened_child, _) = get_hardened_derivation(master_node, &chain_code, &path)?;
-    let sk = hex::decode(&first_hardened_child.to_string()).unwrap();
-    let pk = {
-        let secp = Secp256k1::new();
-        let key = PublicKey::from_secret_key(&secp, &first_hardened_child).serialize();
-        hex::encode(&key.to_vec())
-    };
+    let (sk, _) = get_hardened_derivation(master_node, &chain_code, &path)?;
+    let secp = Secp256k1::new();
+    let pk = PublicKey::from_secret_key(&secp, &sk);
+    println!("PK1: {:?}", pk);
+    export_keypair(sk, pk)
+}
+
+pub fn export_keypair(secret_key: SecretKey, public_key: PublicKey) -> Result<(Vec<u8>, String), Error> {
+    let sk = hex::decode(&secret_key.to_string()).unwrap();
+    let pk = hex::encode(&public_key.serialize().to_vec());
     Ok((sk, pk))
 }
 
@@ -54,4 +57,28 @@ pub fn get_hardened_derivation(root_key: SecretKey, root_code: &Vec<u8>, path: &
         parent_chain_code = chain_code.to_vec();
     }
     Ok((parent_key, parent_chain_code))
+}
+
+pub fn get_private_key_from_wif(wif: &str) -> Result<Vec<u8>, Error> {
+    // Decode base58
+    let sk_checksumed = bs58::decode(&wif).into_vec().unwrap();
+    let len = sk_checksumed.len();
+    let suffix_len: usize;
+    let mut should_compress = false;
+
+    // todo(ludo): Improve legibility
+    if len == 32 + 4 + 1 + 1 {
+        suffix_len = 5;
+        should_compress = true;
+    } else if len == 32 + 4 + 1 {
+        suffix_len = 4;
+    } else {
+        return Err(Error::SecretKeyCorrupted);
+    }
+    let sk = &sk_checksumed[1..len-suffix_len];
+
+    // todo(ludo): Should handle checksum
+    // todo(ludo): Should handle 0x80
+
+    Ok(sk.to_vec())
 }

@@ -3,19 +3,32 @@ use crate::v1::{
         Header,
         authorization_claims::Payload
     },
-    errors::Error,
     types::{AuthScope, EncryptedPayload},
+    helpers::{
+        get_hardened_child_keypair,
+        export_keypair
+    },
+    errors::Error,
     create_app_keypair::CreateAppKeypair,
     create_association_token::CreateAssociationToken,
-    helpers::get_hardened_child_keypair
+    encrypt_content::EncryptContent
 };
 use secp256k1::{
     Secp256k1, 
     SecretKey, 
     PublicKey,
-    Message
+    Message,
+    rand::OsRng
 };
 use sha2::{Sha256, Digest};
+use rand::{Rng, thread_rng};
+use ring::hmac::{Context, Key, HMAC_SHA256};
+use block_modes::{
+    block_padding::Pkcs7,
+    BlockMode, 
+    Cbc
+};
+use aes::Aes256;
 
 // todo(ludo): re-export commands in mod.rs
 
@@ -34,7 +47,7 @@ pub struct CreateAuthorizationToken {
     // todo(ludo): add description
     scopes: Option<Vec<AuthScope>>,
     // Public key used for encrypting the app private key
-    transit_public_key: String,
+    transit_public_key: Vec<u8>,
     // Identity to use
     identidy_index: u32
 }
@@ -47,7 +60,7 @@ impl CreateAuthorizationToken {
                gaia_challenge: String,
                hub_url: String,
                scopes: Option<Vec<AuthScope>>,
-               transit_public_key: String,
+               transit_public_key: Vec<u8>,
                identidy_index: u32) -> Self {
         Self {
             user_bip39_seed,
@@ -89,13 +102,9 @@ impl CreateAuthorizationToken {
 
         // Encrypt app private key with transit key
         let encrypted_app_sk = {
-            let iv = "".to_string();
-            let ephemeral_pk = "".to_string();
-            let cypher_text = "".to_string();
-            let mac = "".to_string();
-            let was_string = "".to_string();
-
-            EncryptedPayload::new(iv, ephemeral_pk, cypher_text, mac, was_string)
+            let mut command = EncryptContent::new(self.transit_public_key.clone(),
+                                                  app_sk.clone());
+            command.run()?
         };
 
         // Build payload based on authorization claims
