@@ -9,7 +9,6 @@ pub fn get_hardened_child_keypair(bip39_seed: &str, path: &[u32]) -> Result<(Vec
     let (sk, _) = get_hardened_derivation(master_node, &chain_code, &path)?;
     let secp = Secp256k1::new();
     let pk = PublicKey::from_secret_key(&secp, &sk);
-    println!("PK1: {:?}", pk);
     export_keypair(sk, pk)
 }
 
