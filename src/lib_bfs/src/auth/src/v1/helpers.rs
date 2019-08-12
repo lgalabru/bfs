@@ -12,6 +12,7 @@ pub fn get_hardened_child_keypair(bip39_seed: &str, path: &[u32]) -> Result<(Vec
     export_keypair(sk, pk)
 }
 
+// todo(ludo): Revisit this strategy. Should intensively use pk[..] instead.
 pub fn export_keypair(secret_key: SecretKey, public_key: PublicKey) -> Result<(Vec<u8>, String), Error> {
     let sk = hex::decode(&secret_key.to_string()).unwrap();
     let pk = hex::encode(&public_key.serialize().to_vec());
