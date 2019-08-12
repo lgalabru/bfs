@@ -9,6 +9,7 @@ use secp256k1::{
     ecdh::SharedSecret
 };
 use ring::hmac::{Context, Key, HMAC_SHA256};
+use sha2::{Sha512, Digest};
 use block_modes::{
     block_padding::Pkcs7,
     BlockMode, 
@@ -63,14 +64,11 @@ impl DecryptContent {
             
             let secp = Secp256k1::new();
             let pk2 = PublicKey::from_secret_key(&secp, &sk);
-
-            &shared_secret[..].to_vec()
+            
+            let mut hasher = Sha512::new();
+            hasher.input(&shared_secret[..]);
+            hasher.result().to_vec()
         };
-
-        // todo(ludo): add a sha512 of shared_secret
-
-        // todo(ludo): remove clone
-        let mut shared_secret = shared_secret.clone();
 
         let hmac_key = shared_secret.split_off(32);
 

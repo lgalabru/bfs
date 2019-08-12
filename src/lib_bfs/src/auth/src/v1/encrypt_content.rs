@@ -11,6 +11,7 @@ use secp256k1::{
 };
 use rand::{Rng, thread_rng};
 use ring::hmac::{Context, Key, HMAC_SHA256};
+use sha2::{Sha512, Digest};
 use block_modes::{
     block_padding::Pkcs7,
     BlockMode, 
@@ -43,20 +44,17 @@ impl EncryptContent {
         rng.fill(&mut iv);
 
         // Generate an ephemeral keypair
-        let (shared_secret, ephemeral_pk) = {
+        let (mut shared_secret, ephemeral_pk) = {
             let secp = Secp256k1::new();
             let mut rng = OsRng::new().expect("OsRng");
             let (ephemeral_sk, ephemeral_pk) = secp.generate_keypair(&mut rng);
             let pk = PublicKey::from_slice(&self.public_key).unwrap();
             // todo(ludo): is this ECDH SharedSecret compatible with the JS implementation? 
-            let mut shared_secret = SharedSecret::new(&pk, &ephemeral_sk);
-            (&shared_secret[..].to_vec(), hex::encode(&ephemeral_pk.serialize().to_vec()))
+            let shared_secret = SharedSecret::new(&pk, &ephemeral_sk);
+            let mut hasher = Sha512::new();
+            hasher.input(&shared_secret[..]);
+            (hasher.result().to_vec(), hex::encode(&ephemeral_pk.serialize().to_vec()))
         };
-    
-        // todo(ludo): add a sha512 of shared_secret
-
-        // todo(ludo): remove clone
-        let mut shared_secret = shared_secret.clone();
 
         let hmac_key = shared_secret.split_off(32);
 
