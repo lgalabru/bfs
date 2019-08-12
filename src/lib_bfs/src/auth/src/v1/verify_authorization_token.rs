@@ -6,7 +6,6 @@ use base64;
 use secp256k1::{Secp256k1, Message, Signature, PublicKey};
 use hex;
 
-use crate::utils;
 use crate::v1::{
     jwt::{
         Header,

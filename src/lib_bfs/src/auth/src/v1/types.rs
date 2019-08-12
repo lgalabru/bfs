@@ -13,7 +13,7 @@ pub struct AuthScope {
 //   'deleteFilePrefix'
 // ]
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct EncryptedPayload {
     // todo(ludo): add description
     pub iv: Option<String>,
