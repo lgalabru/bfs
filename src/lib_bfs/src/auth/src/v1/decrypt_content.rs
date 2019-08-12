@@ -40,6 +40,7 @@ impl DecryptContent {
 
     pub fn run(&self) -> Result<Vec<u8>, Error> {
 
+        // Extract payload
         // todo(ludo): handle all the unwrap()
         let ephemeral_pk = {
             let data = self.encrypted_payload.ephemeral_pk.as_ref().unwrap();
@@ -58,6 +59,7 @@ impl DecryptContent {
             hex::decode(data).unwrap()
         };
 
+        // Generate a shared secret
         let mut shared_secret = {
             let pk = PublicKey::from_slice(&ephemeral_pk).unwrap();
             let sk = SecretKey::from_slice(&self.secret_key).unwrap();
@@ -69,19 +71,14 @@ impl DecryptContent {
             &shared_secret[..].to_vec()
         };
 
-        // todo(ludo): sha512 of shared_secret
+        // todo(ludo): add a sha512 of shared_secret
 
+        // todo(ludo): remove clone
         let mut shared_secret = shared_secret.clone();
 
         let hmac_key = shared_secret.split_off(32);
 
         // todo(ludo): check hmac
-
-        let cipher = Aes256Cbc::new_var(&shared_secret, &iv).unwrap();
-        let mut buf = cipher_text.to_vec();
-        let data = cipher.decrypt(&mut buf).unwrap();
-        println!("{:?}", data);
-
         // let tag = {
         //     let key = Key::new(HMAC_SHA256, &hmac_key);
         //     let mut context = Context::with_key(&key);
@@ -91,6 +88,10 @@ impl DecryptContent {
         //     context.update(&cipher_text);
         //     context.sign()
         // };
+
+        let cipher = Aes256Cbc::new_var(&shared_secret, &iv).unwrap();
+        let mut buf = cipher_text.to_vec();
+        let data = cipher.decrypt(&mut buf).unwrap();
 
         Ok(data.to_vec())
     }

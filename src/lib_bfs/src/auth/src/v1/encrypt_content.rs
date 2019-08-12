@@ -57,25 +57,22 @@ impl EncryptContent {
             (&shared_secret[..].to_vec(), hex::encode(&ephemeral_pk.serialize().to_vec()))
         };
     
-        // todo(ludo): sha512 of shared_secret
+        // todo(ludo): add a sha512 of shared_secret
 
+        // todo(ludo): remove clone
         let mut shared_secret = shared_secret.clone();
 
         let hmac_key = shared_secret.split_off(32);
 
         let cipher = Aes256Cbc::new_var(&shared_secret, &iv).unwrap();
 
-        // buffer must have enough space for message+padding
+        // todo(ludo): improve buffer size handling (must have enough space for message+padding)
         let mut buffer = [0u8; 64];
         let pos = self.data.len();
         buffer[..pos].copy_from_slice(&self.data);
         let cipher_text = cipher.encrypt(&mut buffer, pos).unwrap();
         
-        // re-create cipher mode instance and decrypt the message
-        let cipher = Aes256Cbc::new_var(&shared_secret, &iv).unwrap();
-        let mut buf = cipher_text.to_vec();
-        let decrypted_cipher_text = cipher.decrypt(&mut buf).unwrap();
-
+        // Create signature
         let tag = {
             let key = Key::new(HMAC_SHA256, &hmac_key);
             let mut context = Context::with_key(&key);
