@@ -1,4 +1,4 @@
-use secp256k1::{Secp256k1, Message, SecretKey, PublicKey};
+use secp256k1::{Secp256k1, Message, SecretKey};
 use sha2::{Sha256, Digest};
 use base64;
 use hex;

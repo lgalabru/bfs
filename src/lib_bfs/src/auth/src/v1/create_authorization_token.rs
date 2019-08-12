@@ -3,10 +3,9 @@ use crate::v1::{
         Header,
         authorization_claims::Payload
     },
-    types::{AuthScope, EncryptedPayload},
+    types::{AuthScope},
     helpers::{
         get_hardened_child_keypair,
-        export_keypair
     },
     errors::Error,
     create_app_keypair::CreateAppKeypair,
@@ -16,19 +15,10 @@ use crate::v1::{
 use secp256k1::{
     Secp256k1, 
     SecretKey, 
-    PublicKey,
     Message,
-    rand::OsRng
 };
 use sha2::{Sha256, Digest};
-use rand::{Rng, thread_rng};
-use ring::hmac::{Context, Key, HMAC_SHA256};
-use block_modes::{
-    block_padding::Pkcs7,
-    BlockMode, 
-    Cbc
-};
-use aes::Aes256;
+
 
 // todo(ludo): re-export commands in mod.rs
 

@@ -1,9 +1,5 @@
 use crate::v1::{
     types::{EncryptedPayload},
-    helpers::{
-        get_hardened_child_keypair,
-        export_keypair
-    },
     errors::Error,
 };
 use secp256k1::{
