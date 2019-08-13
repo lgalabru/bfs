@@ -1,5 +1,6 @@
 pub mod association_claims;
 pub mod authorization_claims;
+pub mod authorization_request_claims;
 
 use serde::{Deserialize, Serialize};
 
