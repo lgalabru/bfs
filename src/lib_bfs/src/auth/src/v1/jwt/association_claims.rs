@@ -16,8 +16,8 @@ pub struct Payload {
     pub exp: Option<u64>,
     /// Add some salt to limit replay attacks
     pub salt: Option<String>,
-    /// App public key
-    pub childToAssociate: Option<String>
+    // todo(ludo): add description, serialize to childToAssociate
+    pub child_to_associate: Option<String>
 }
 
 impl Payload {
@@ -40,7 +40,7 @@ impl Payload {
             // todo(ludo): set expiration
             exp: Some(0),
             iss: Some(user_public_key),
-            childToAssociate: Some(app_public_key),
+            child_to_associate: Some(app_public_key),
             salt: Some(salt_hex)
         }
     }
