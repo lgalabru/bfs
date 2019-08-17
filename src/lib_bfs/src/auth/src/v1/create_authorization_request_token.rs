@@ -4,12 +4,14 @@ use crate::v1::{
         authorization_request_claims::Payload
     },
     types::{AuthScope},
-    errors::Error
+    errors::Error,
+    helpers::get_address_from_public_key
 };
 use secp256k1::{
     Secp256k1, 
     SecretKey, 
     PublicKey,
+    Message,
     rand::OsRng,
 };
 use sha2::{Sha256, Digest};
@@ -24,9 +26,9 @@ pub struct CreateAuthorizationRequestToken {
     // todo(ludo): add description
     version: String,
     // todo(ludo): add description
-    do_not_include_profile: String,
+    do_not_include_profile: bool,
     // todo(ludo): add description
-    supports_hub_url: String,
+    supports_hub_url: bool,
     // todo(ludo): add description
     scopes: Vec<AuthScope>,
 }
@@ -37,7 +39,7 @@ impl CreateAuthorizationRequestToken {
                manifest_uri: String,
                redirect_uri: String,
                version: String,
-               scopes: Option<Vec<AuthScope>>,
+               scopes: Vec<AuthScope>,
                do_not_include_profile: bool,
                supports_hub_url: bool) -> Self {
         Self {
@@ -51,7 +53,7 @@ impl CreateAuthorizationRequestToken {
         }
     }
 
-    pub fn run(&self) -> Result<String, Error> {
+    pub fn run(&self) -> Result<(String, Vec<u8>), Error> {
 
         let (transit_sk, transit_pk) = {
             let secp = Secp256k1::new();
@@ -59,16 +61,24 @@ impl CreateAuthorizationRequestToken {
             secp.generate_keypair(&mut rng)
         };
 
-        // Build payload based on authorization claims
+        let transit_pk_hex = hex::encode(&transit_pk.serialize().to_vec());
+
         let payload = {
+            let address = match get_address_from_public_key(&transit_pk_hex) {
+                Ok(address) => address,
+                Err(_) => return Err(Error::PayloadDataCorrupted) // todo(ludo): add error
+            };
+
             let payload = Payload::new(
-                self.app_domain,
+                address,
+                self.app_domain.clone(),
                 self.do_not_include_profile,
-                self.manifest_uri,
-                self.redirect_uri,
-                self.scopes,
-                self.supports_hub_url
-                self.version,
+                self.manifest_uri.clone(),
+                self.redirect_uri.clone(),
+                self.version.clone(),
+                self.scopes.clone(),
+                self.supports_hub_url,
+                vec![transit_pk_hex]
             );
             let w_payload_json = serde_json::to_string(&payload);
             if let Err(_) = w_payload_json {
@@ -91,7 +101,7 @@ impl CreateAuthorizationRequestToken {
             base64::encode_config(&header_json, base64::URL_SAFE_NO_PAD)
         };
 
-        let authorization_token = {
+        let authorization_request_token = {
             // todo(ludo): merge slices instead
             let signing_input = [header, payload].join(".");
 
@@ -102,14 +112,14 @@ impl CreateAuthorizationRequestToken {
 
             let secp = Secp256k1::signing_only();
             let message = Message::from_slice(&signing_input_hashed).expect("32 bytes");
-            let key = SecretKey::from_slice(&transit_sk).unwrap();
-            let sig = secp.sign(&message, &key);
+            let sig = secp.sign(&message, &transit_sk);
             let sig_serialized = sig.serialize_compact().to_vec();
 
             let sig_b64 = base64::encode_config(&sig_serialized, base64::URL_SAFE);
-            [signing_input, sig_b64].join(".")
+            format!("v1:{}.{}", signing_input, sig_b64)
         };
+        let transit_sk_hex = hex::decode(&transit_sk.to_string()).unwrap();
 
-        Ok(authorization_request_token)
+        Ok((authorization_request_token, transit_sk_hex))
     }
 }

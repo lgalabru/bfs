@@ -27,33 +27,40 @@ pub struct Payload {
     pub supports_hub_url: Option<bool>,
     // todo(ludo): add description
     pub version: Option<String>,
+    // todo(ludo): add description, serialize to publicKeys
+    pub public_keys: Option<Vec<String>>,
 }
 
 impl Payload {
 
-    pub fn new(app_domain: String, 
+    pub fn new(address: String,
+               app_domain: String, 
                do_not_include_profile: bool, 
                manifest_uri: String, 
                redirect_uri: String, 
                version: String, 
                scopes: Vec<AuthScope>,
-               supports_hub_url: bool) -> Self {
+               supports_hub_url: bool,
+               public_keys: Vec<String>) -> Self {
 
         // Generate UUID
         let uuid = Uuid::new_v4().to_string();
         
+        let did = format!("did:btc-addr:{}", address);
+
         Self {
             jti: Some(uuid),
             iat: Some(0),
             exp: Some(0),
-            iss: None,
+            iss: Some(did),
             app_domain: Some(app_domain),
             manifest_uri: Some(manifest_uri),
             redirect_uri: Some(redirect_uri),
             version: Some(version),
             do_not_include_profile: Some(do_not_include_profile),
             supports_hub_url: Some(supports_hub_url),
-            scopes: Some(scopes)
+            scopes: Some(scopes),
+            public_keys: Some(public_keys)
         }
     }
 }

@@ -8,9 +8,11 @@ use crate::v1::{
         get_hardened_child_keypair,
     },
     errors::Error,
-    create_app_keypair::CreateAppKeypair,
-    create_association_token::CreateAssociationToken,
-    encrypt_content::EncryptContent
+    // Commands
+    VerifyAuthorizationRequestToken,
+    CreateAppKeypair,
+    CreateAssociationToken,
+    EncryptContent
 };
 use secp256k1::{
     Secp256k1, 
@@ -26,18 +28,12 @@ pub struct CreateAuthorizationToken {
     /// User secret seed - BIP39.
     // todo(ludo): we should be using m'/888'/0'/0' (or so) instead
     user_bip39_seed: Vec<u8>,
-    /// App domain.
-    app_domain: String,
     /// JWT token
     authorization_request_token: String,
     // todo(ludo): add description
     gaia_challenge: String,
     // URL to the write path of the user's Gaia hub
     hub_url: String,
-    // todo(ludo): add description
-    scopes: Option<Vec<AuthScope>>,
-    // Public key used for encrypting the app private key
-    transit_public_key: Vec<u8>,
     // Identity to use
     identidy_index: u32
 }
@@ -45,26 +41,39 @@ pub struct CreateAuthorizationToken {
 impl CreateAuthorizationToken {
 
     pub fn new(user_bip39_seed: Vec<u8>,
-               app_domain: String, 
                authorization_request_token: String,
                gaia_challenge: String,
                hub_url: String,
-               scopes: Option<Vec<AuthScope>>,
-               transit_public_key: Vec<u8>,
                identidy_index: u32) -> Self {
         Self {
             user_bip39_seed,
-            app_domain,
             authorization_request_token,
             gaia_challenge,
             hub_url,
-            scopes,
-            transit_public_key,
             identidy_index
         }
     }
 
     pub fn run(&self) -> Result<String, Error> {
+
+        // Verify + Extract authorization request token
+        let mut command = VerifyAuthorizationRequestToken::new(self.authorization_request_token.clone());
+        let (auth_request_header, auth_request_payload) = match command.run() {
+            Ok(res) => res,
+            Err(_) => return Err(Error::PayloadDataCorrupted) // todo(ludo): Add specific error
+        };
+
+        let public_transit_key = match auth_request_payload.public_keys {
+            Some(public_keys) => {
+                hex::decode(&public_keys[0]).unwrap()               
+            },
+            None => return Err(Error::PayloadDataCorrupted) // todo(ludo): Add specific error
+        };
+
+        let app_domain = match auth_request_payload.app_domain {
+            Some(app_domain) => app_domain,
+            None => return Err(Error::PayloadDataCorrupted) // todo(ludo): Add specific error
+        };
 
         // Get user keypair
         let (user_secret_key, user_public_key) = {
@@ -77,22 +86,22 @@ impl CreateAuthorizationToken {
         let (app_sk, app_pk, app_address) = {
             // todo(ludo): remove clones
             let mut command = CreateAppKeypair::new(self.user_bip39_seed.clone(), 
-                                                    self.app_domain.clone());
+                                                    app_domain.clone());
             command.run()?
         };
 
         // Create association token
         let association_token = {
             // todo(ludo): remove clones
-            let mut command = CreateAssociationToken::new(user_secret_key.clone(),
-                                                          user_public_key.clone(),
-                                                          app_pk.clone());
+            let command = CreateAssociationToken::new(user_secret_key.clone(),
+                                                      user_public_key.clone(),
+                                                      app_pk.clone());
             command.run()?
         };
 
         // Encrypt app private key with transit key
         let encrypted_app_sk = {
-            let mut command = EncryptContent::new(self.transit_public_key.clone(),
+            let mut command = EncryptContent::new(public_transit_key.clone(),
                                                   app_sk.clone());
             command.run()?
         };
@@ -148,4 +157,3 @@ impl CreateAuthorizationToken {
         Ok(authorization_token)
     }
 }
-

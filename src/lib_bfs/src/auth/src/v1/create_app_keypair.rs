@@ -2,7 +2,8 @@ use crate::v1::{
     errors::Error,
     helpers::{
         get_master_node_from_bip39_seed,
-        get_hardened_derivation
+        get_hardened_derivation,
+        get_hardened_child_keypair
     }
 };
 use secp256k1::{Secp256k1, SecretKey, PublicKey};
