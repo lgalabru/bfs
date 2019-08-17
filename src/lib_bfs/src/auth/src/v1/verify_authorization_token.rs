@@ -1,7 +1,5 @@
 use serde_json;
 use sha2::{Sha256, Digest};
-use ripemd160::Ripemd160;
-use bs58;
 use base64;
 use secp256k1::{Secp256k1, Message, Signature, PublicKey};
 use hex;
@@ -11,7 +9,8 @@ use crate::v1::{
         Header,
         authorization_claims::Payload
     },
-    errors::Error
+    errors::Error,
+    helpers::get_address_from_public_key
 };
 
 pub struct VerifyAuthorizationToken {
@@ -91,36 +90,8 @@ impl VerifyAuthorizationToken {
             return Err(Error::PrincipalMissing);
         }
 
-        let pub_key = payload.iss.unwrap();
-        let pub_key_hex = hex::decode(&pub_key).unwrap();
-
-        let address = {
-            // SHA256
-            let mut sha2 = Sha256::new();
-            sha2.input(pub_key_hex.clone());
-            let pub_key_hashed = sha2.result();
-
-            // RIPEMD160
-            let mut rmd = Ripemd160::new();
-            let mut pub_key_h160 = [0u8; 20];
-            rmd.input(pub_key_hashed);
-            pub_key_h160.copy_from_slice(rmd.result().as_slice());
-
-            // Prepend version byte
-            let version_byte = [0]; // MAINNET_SINGLESIG
-            let v_pub_key_h160 = [&version_byte[..], &pub_key_h160[..]].concat();
-            
-            // Append checksum
-            let mut sha2_1 = Sha256::new();
-            sha2_1.input(v_pub_key_h160.clone());
-            let mut sha2_2 = Sha256::new();
-            sha2_2.input(sha2_1.result().as_slice());
-            let checksum = sha2_2.result();
-            let v_pub_key_h160_checksumed = [&v_pub_key_h160[..], &checksum[0..4]].concat();
-            
-            // Base58 encode
-            bs58::encode(v_pub_key_h160_checksumed).into_string()
-        };
+        let public_key = payload.iss.unwrap();
+        let address = get_address_from_public_key(&public_key);
 
         // Check Signature
         let sig_verification = {
@@ -140,6 +111,7 @@ impl VerifyAuthorizationToken {
 
             // Verify signature
             let secp = Secp256k1::verification_only();
+            let pub_key_hex = hex::decode(&public_key).unwrap();
             let public_key = PublicKey::from_slice(&pub_key_hex).expect("public keys must be 33 or 65 bytes, serialized according to SEC 2");
             let message = Message::from_slice(&signing_input_hashed).expect("messages must be 32 bytes and are expected to be hashes");
             let sig = Signature::from_compact(&compact_sig).expect("compact signatures are 64 bytes;");
