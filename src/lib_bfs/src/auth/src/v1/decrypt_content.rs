@@ -60,7 +60,7 @@ impl DecryptContent {
         let mut shared_secret = {
             let pk = PublicKey::from_slice(&ephemeral_pk).unwrap();
             let sk = SecretKey::from_slice(&self.secret_key).unwrap();
-            let mut shared_secret = SharedSecret::new(&pk, &sk);
+            let shared_secret = SharedSecret::new(&pk, &sk);
             
             let secp = Secp256k1::new();
             let pk2 = PublicKey::from_secret_key(&secp, &sk);
