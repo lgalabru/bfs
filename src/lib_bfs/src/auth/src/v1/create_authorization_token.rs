@@ -25,7 +25,7 @@ use sha2::{Sha256, Digest};
 pub struct CreateAuthorizationToken {
     /// User secret seed - BIP39.
     // todo(ludo): we should be using m'/888'/0'/0' (or so) instead
-    user_bip39_seed: String,
+    user_bip39_seed: Vec<u8>,
     /// App domain.
     app_domain: String,
     /// JWT token
@@ -44,7 +44,7 @@ pub struct CreateAuthorizationToken {
 
 impl CreateAuthorizationToken {
 
-    pub fn new(user_bip39_seed: String, 
+    pub fn new(user_bip39_seed: Vec<u8>,
                app_domain: String, 
                authorization_request_token: String,
                gaia_challenge: String,

@@ -4,6 +4,7 @@ use async_trait::async_trait;
 
 pub mod list_files;
 
+#[derive(Debug)]
 pub struct AuthenticationToken {
     /// Token's value - base64 encoded.
     value: String

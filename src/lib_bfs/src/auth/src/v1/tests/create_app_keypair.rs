@@ -14,7 +14,8 @@ fn should_succeed_generating_app_key_pair_when_inputs_are_valid() {
     let expected_app_address = "1A9NEhnXq5jDp9BRT4DrwadRP5jbBK896X";
     let expected_app_pk = "0329b5e65a1d392b795c310a830a527a0e1a928dd1ba5895d6b4d311c0f6dcf8ae";
     
-    let mut command = CreateAppKeypair::new(bip39_seed.to_string(), app_domain.to_string());
+    let bip39_seed = hex::decode(&bip39_seed).unwrap();
+    let mut command = CreateAppKeypair::new(bip39_seed, app_domain.to_string());
     let (_, pk, address) = command.run().unwrap();
 
     assert!(expected_app_address == address);

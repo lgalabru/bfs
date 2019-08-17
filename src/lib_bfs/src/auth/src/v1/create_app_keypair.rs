@@ -12,7 +12,7 @@ use hex;
 
 pub struct CreateAppKeypair {
     /// User secret seed - BIP39.
-    user_bip39_seed: String,
+    user_bip39_seed: Vec<u8>,
     /// App domain.
     app_domain: String,
     /// Index of the node 'apps'.
@@ -23,7 +23,7 @@ pub struct CreateAppKeypair {
 
 impl CreateAppKeypair {
 
-    pub fn new(user_bip39_seed: String, app_domain: String) -> Self {
+    pub fn new(user_bip39_seed: Vec<u8>, app_domain: String) -> Self {
         Self {
             user_bip39_seed,
             app_domain,

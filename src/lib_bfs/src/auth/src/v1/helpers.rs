@@ -3,7 +3,7 @@ use ring::hmac::{Context, Key, HMAC_SHA512};
 use secp256k1::{Secp256k1, SecretKey, PublicKey};
 use hex;
 
-pub fn get_hardened_child_keypair(bip39_seed: &str, path: &[u32]) -> Result<(Vec<u8>, String), Error> {
+pub fn get_hardened_child_keypair(bip39_seed: &Vec<u8>, path: &[u32]) -> Result<(Vec<u8>, String), Error> {
     let (master_node_bytes, chain_code) = get_master_node_from_bip39_seed(&bip39_seed);
     let master_node = SecretKey::from_slice(&master_node_bytes).unwrap();
     let (sk, _) = get_hardened_derivation(master_node, &chain_code, &path)?;
@@ -19,10 +19,9 @@ pub fn export_keypair(secret_key: SecretKey, public_key: PublicKey) -> Result<(V
     Ok((sk, pk))
 }
 
-pub fn get_master_node_from_bip39_seed(bip39_seed: &str) -> (Vec<u8>, Vec<u8>) {
-    let bytes = hex::decode(&bip39_seed).unwrap();
+pub fn get_master_node_from_bip39_seed(bip39_seed: &Vec<u8>) -> (Vec<u8>, Vec<u8>) {
     let key = Key::new(HMAC_SHA512, b"Bitcoin seed");
-    let tag = ring::hmac::sign(&key, &bytes);
+    let tag = ring::hmac::sign(&key, &bip39_seed);
     let mut master_node = tag.as_ref().to_vec();
     let chain_code = master_node.split_off(32);
     (master_node, chain_code)
