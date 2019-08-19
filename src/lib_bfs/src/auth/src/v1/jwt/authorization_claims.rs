@@ -48,7 +48,10 @@ impl Payload {
         rng.fill(&mut salt);
         let salt_hex = hex::encode(&salt);
 
+        // todo(ludo): convert pk to add
         let did = format!("did:btc-addr:{}", user_public_key);
+
+        // todo(ludo): encode secret key
 
         Self {
             jti: Some(uuid),
