@@ -7,8 +7,7 @@ use std::collections::HashMap;
 use std::env;
 use std::cmp;
 
-use file_system::{FS, FileMap};
-// use web_view::*;
+use file_system::{FS, SyncEngine};
 use tokio;
 use crate::authenticator::LocalAuthenticator;
 
@@ -92,12 +91,12 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     };
 
     let user = users.get(&name).unwrap();
-    let mut authorization_tokens: HashMap<String, String> = HashMap::new();
-    let mut file_map = FileMap::new();
+    let authorization_tokens: HashMap<String, String> = HashMap::new();
+    let mut sync_engine = SyncEngine::new();
 
     for (app_domain, url) in user.profile.apps.iter() {
-        let dir_name = {
-            let app_name: &str = if app_domain.starts_with("https://") {
+        let app_name = {
+            let app_domain_striped: &str = if app_domain.starts_with("https://") {
                 &app_domain[8..]
             } else if app_domain.starts_with("http://") {
                 let comps: Vec<&str> = app_domain[7..].split(":").collect();
@@ -105,10 +104,12 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             } else {
                 panic!()
             };
-            let mut comps: Vec<&str> = app_name.split(".").collect();
+            let comps: Vec<&str> = app_domain_striped.split(".").collect();
             OsString::from(comps.join("-"))
         };
-        file_map.new_directory(1, &dir_name);
+        println!("Mounting {:?}", app_name);
+
+        // file_map.new_directory(1, &app_name);
 
         let command = CreateAuthorizationRequestToken::new(
             app_domain.to_string(),
@@ -125,12 +126,11 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             Err(e) => panic!()
         };
 
-
         let command = CreateAuthorizationToken::new(
             bip39_seed.clone(),
             authorization_request_token,
             "".to_string(), // todo(ludo): fill gaia_challenge
-            "".to_string(), // todo(ludo): fill hub_url
+            url.to_string(),
             0
         );
 
@@ -139,12 +139,12 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             Err(e) => panic!()
         };
 
-        authorization_tokens.insert(app_domain.to_string(), authorization_token);
+        sync_engine.register_endpoint(app_name, url.to_string(), authorization_token);
+
+        // authorization_tokens.insert(app_name.to_string(), authorization_token);
     }
 
-    let authenticator = LocalAuthenticator::new(authorization_tokens); // todo(ludo): fix clone
-    
-    let filesystem = FS::new(authenticator, file_map);
+    let filesystem = FS::new(sync_engine);
 
     fuse::mount(filesystem, &mountpoint, &options).unwrap();
 

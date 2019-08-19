@@ -3,10 +3,8 @@ use std::ffi::{OsStr, OsString};
 use libc::ENOENT;
 use time::Timespec;
 use fuse::{FileType, FileAttr, Request, ReplyData, ReplyEntry, ReplyEmpty, ReplyOpen, ReplyAttr, ReplyDirectory};
-use std::collections::HashMap;
 use tokio::runtime::Runtime;
-use crate::authenticator::LocalAuthenticator;
-use crate::file_system::{FileAdapter, FileMap};
+use crate::file_system::{SyncEngine};
 
 use primitives::{
     file::{
@@ -45,23 +43,23 @@ const TEMP_CONTENT: &'static str = "Hello World!\n";
 pub struct FS {
     // cached_lookup: HashMap<(u32, OsString), FileAttr>,
     // cached_getattr: HashMap<(u32, u64), FileAttr>,
-    authenticator: LocalAuthenticator,
-    file_map: FileMap
+    // authenticator: LocalAuthenticator,
+    // file_map: FileMap
+    sync_engine: SyncEngine
 }
 
 impl FS {
 
-    pub fn new(authenticator: LocalAuthenticator, file_map: FileMap) -> Self {
+    pub fn new(sync_engine: SyncEngine) -> Self {
         Self {
-            authenticator,
-            file_map
+            sync_engine
         }
     }
 
     async fn list_files(&mut self, prefix_path: &str) -> Result<ListFilesResult, Error>{
         let builder = ListFilesCommandBuilder::new(
             OsString::from(prefix_path),
-            &self.authenticator 
+            &self.sync_engine 
         );
 
         let res = builder.run().await;
@@ -93,11 +91,12 @@ impl fuse::Filesystem for FS {
             return;
         }
 
+
         let mut curr_offs = offset + 1;
-        match self.file_map.directory_content.get(&ino) {
+        match self.sync_engine.file_map.directory_entries.get(&ino) {
             Some(entries) => {
                 for file_ino in entries.iter().skip(offset as usize) {                    
-                    let (name, attrs) = self.file_map.files.get(file_ino).unwrap(); // todo(ludo): fix unwrap
+                    let (name, attrs) = self.sync_engine.file_map.files.get(file_ino).unwrap(); // todo(ludo): fix unwrap
                     if reply.add(*file_ino, curr_offs, attrs.kind , &name.clone()) {
                         break;
                     } else {
@@ -129,7 +128,7 @@ impl fuse::Filesystem for FS {
 
         let key = (parent, name.to_os_string());
 
-        let ino = match self.file_map.lookup.get(&key) {
+        let ino = match self.sync_engine.file_map.lookup.get(&key) {
             Some(ino) => ino,
             None => {
                 reply.error(ENOENT);
@@ -138,7 +137,7 @@ impl fuse::Filesystem for FS {
         };
         error!("lookup: {:?} {:?}", key, ino);
 
-        let (_, attrs) = match self.file_map.files.get(&ino) {
+        let (_, attrs) = match self.sync_engine.file_map.files.get(&ino) {
             Some(res) => res,
             None => {
                 reply.error(ENOENT);
@@ -156,7 +155,7 @@ impl fuse::Filesystem for FS {
         match ino {
             1 => reply.attr(&TTL, &BFS_DIR_ATTR),
             _ => {
-                let (_, attrs) = self.file_map.files.get(&ino).unwrap(); // todo(ludo): fix unwrap
+                let (_, attrs) = self.sync_engine.file_map.files.get(&ino).unwrap(); // todo(ludo): fix unwrap
                 reply.attr(&TTL, &attrs);
             }
         }

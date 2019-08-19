@@ -11,7 +11,7 @@ pub struct FileMap {
     /// Keep track of files: (u64, )
     pub files: HashMap<u64, (OsString, FileAttr)>,
     /// Keep track of direto
-    pub directory_content: HashMap<u64, Vec<u64>>,
+    pub directory_entries: HashMap<u64, Vec<u64>>,
     /// Lookup (parent, name) -> ino
     pub lookup: HashMap<(u64, OsString), u64>
 }
@@ -21,7 +21,7 @@ impl FileMap {
         let mut file_map = Self {
             next_inode: 1,
             files: HashMap::new(),
-            directory_content: HashMap::new(),
+            directory_entries: HashMap::new(),
             lookup: HashMap::new()
         };
         file_map.insert_root();
@@ -35,9 +35,11 @@ impl FileMap {
         
         self.files.insert(ino, (OsString::from(""), root_attr));
 
-        self.directory_content.insert(ino, Vec::new());
+        self.directory_entries.insert(ino, Vec::new());
     }
 
+    // file_map.register_volume(&app_name, authorization_token);
+    // authorization_tokens.insert(app_name.to_string(), authorization_token);
 
     pub fn new_regular_file(&mut self, parent: u64, name: &OsStr) -> FileAttr {
 
@@ -46,7 +48,7 @@ impl FileMap {
         
         self.files.insert(ino, (name.to_os_string(), file_attr));
 
-        let siblings = self.directory_content.get_mut(&parent).unwrap();
+        let siblings = self.directory_entries.get_mut(&parent).unwrap();
         siblings.push(ino);
 
         self.lookup.insert((parent, name.to_os_string()), ino);
@@ -61,9 +63,9 @@ impl FileMap {
         
         self.files.insert(ino, (name.to_os_string(), file_attr));
 
-        self.directory_content.insert(ino, Vec::new());
+        self.directory_entries.insert(ino, Vec::new());
 
-        let siblings = self.directory_content.get_mut(&parent).unwrap();
+        let siblings = self.directory_entries.get_mut(&parent).unwrap();
         siblings.push(ino);
 
         self.lookup.insert((parent, name.to_os_string()), ino);
