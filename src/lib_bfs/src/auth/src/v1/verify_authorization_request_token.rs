@@ -28,7 +28,6 @@ impl VerifyAuthorizationRequestToken {
 
     pub fn run(&mut self) -> Result<(Header, Payload), Error> {
         let version_prefix = "v1:";
-        println!("X");
 
         let (version, jwt_token) = self.token.split_at(version_prefix.len());
         if version != version_prefix {
