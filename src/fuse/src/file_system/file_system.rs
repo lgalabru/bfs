@@ -3,7 +3,6 @@ use std::ffi::{OsStr, OsString};
 use libc::ENOENT;
 use time::Timespec;
 use fuse::{FileType, FileAttr, Request, ReplyData, ReplyEntry, ReplyEmpty, ReplyOpen, ReplyAttr, ReplyDirectory};
-use tokio::runtime::Runtime;
 use crate::file_system::{SyncEngine};
 
 use primitives::{
@@ -12,10 +11,6 @@ use primitives::{
         ListFilesResult
     },
     errors::Error
-};
-
-use bfs_commands::{
-    list_files::{ListFilesCommandBuilder, ListFilesCommandHandler},
 };
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };                     // 1 second
@@ -54,20 +49,6 @@ impl FS {
         Self {
             sync_engine
         }
-    }
-
-    async fn list_files(&mut self, prefix_path: &str) -> Result<ListFilesResult, Error>{
-        let builder = ListFilesCommandBuilder::new(
-            OsString::from(prefix_path),
-            &self.sync_engine 
-        );
-
-        let res = builder.run().await;
-
-        let command = res.unwrap();
-
-        let handler = ListFilesCommandHandler::new(&command);
-        handler.run()
     }
 }
 

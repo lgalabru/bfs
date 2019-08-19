@@ -9,7 +9,6 @@ use std::cmp;
 
 use file_system::{FS, SyncEngine};
 use tokio;
-use crate::authenticator::LocalAuthenticator;
 
 use bip39::{Mnemonic, Seed, Language};
 

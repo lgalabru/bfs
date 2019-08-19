@@ -41,7 +41,7 @@ impl FileMap {
     // file_map.register_volume(&app_name, authorization_token);
     // authorization_tokens.insert(app_name.to_string(), authorization_token);
 
-    pub fn new_regular_file(&mut self, parent: u64, name: &OsStr) -> FileAttr {
+    pub fn register_regular_file(&mut self, parent: u64, name: &OsStr) -> FileAttr {
 
         let file_attr = self.new_file(FileType::RegularFile);
         let ino = file_attr.ino;
@@ -56,7 +56,7 @@ impl FileMap {
         file_attr
     }
 
-    pub fn new_directory(&mut self, parent: u64, name: &OsStr) -> FileAttr {
+    pub fn register_directory(&mut self, parent: u64, name: &OsStr) -> FileAttr {
 
         let file_attr = self.new_file(FileType::Directory);
         let ino = file_attr.ino;
