@@ -6,9 +6,8 @@ use std::io;
 use std::collections::HashMap;
 use std::env;
 use std::cmp;
-
 use file_system::{FS, SyncEngine};
-use tokio;
+use tokio::runtime::Runtime;
 
 use bip39::{Mnemonic, Seed, Language};
 
@@ -138,7 +137,8 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             Err(e) => panic!()
         };
 
-        sync_engine.register_endpoint(app_name, url.to_string(), authorization_token);
+        sync_engine.register_endpoint(app_name, url.to_string(), authorization_token).await;
+
 
         // authorization_tokens.insert(app_name.to_string(), authorization_token);
     }

@@ -7,7 +7,6 @@ use bfs_commands::{
     AuthenticationToken
 };
 use fuse::{FileType, FileAttr};
-use tokio::runtime::Runtime;
 use crate::file_system::{FileMap};
 use crate::authenticator::{Authenticator};
 use bfs_commands::{
@@ -31,17 +30,14 @@ impl SyncEngine {
         Self {
             authenticator_map: HashMap::new(),
             file_map: FileMap::new(),
-            request_queue: VecDeque::new()
+            request_queue: VecDeque::new(),
         }
     }
 
-    pub fn register_endpoint(&mut self, name: OsString, url: String, authorization_token: String) {
+    pub async fn register_endpoint(&mut self, name: OsString, url: String, authorization_token: String) {
         let attr = self.file_map.register_directory(1, &name);
         self.authenticator_map.insert(attr.ino, (name, url, Authenticator::new(authorization_token))); // todo(ludo): fix unwrap
-        let mut rt = Runtime::new().unwrap();
-        rt.block_on(async {
-            self.sync_dir(attr, OsString::from("/"));
-        });
+        self.sync_dir(attr, OsString::from("/")).await;
     }
 
     pub async fn sync_dir(&mut self, dir_attr: FileAttr, path: OsString) {

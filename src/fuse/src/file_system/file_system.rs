@@ -67,7 +67,7 @@ impl fuse::Filesystem for FS {
     fn readdir(&mut self, req: &Request, ino: u64, fh: u64, offset: i64, mut reply: ReplyDirectory) {
         error!("readdir: {} - {:?}", ino, req);
 
-        if ino != 1 {
+        if ino < 1 {
             reply.error(ENOENT);
             return;
         }
@@ -102,7 +102,7 @@ impl fuse::Filesystem for FS {
     fn lookup(&mut self, req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
         error!("lookup: {:?} {:?} {:?}", name, req, parent);
 
-        if parent != 1 {
+        if parent < 1 {
             reply.error(ENOENT);
             return
         }
