@@ -17,18 +17,23 @@ pub struct Payload {
     pub exp: Option<u64>,
     // todo(ludo): add description
     pub scopes: Option<Vec<AuthScope>>,
-    // todo(ludo): add description, serialize to gaiaChallenge
+    // todo(ludo): add description
+    #[serde(rename = "gaiaChallenge")]
     pub gaia_challenge: Option<String>,
     /// Add some salt to limit replay attacks
     pub salt: Option<Salt>,
-    // todo(ludo): add description, serialize to hubUrl
+    // todo(ludo): add description
+    #[serde(rename = "hubUrl")]
     pub hub_url: Option<String>,
-    // todo(ludo): add description, serialize to associationToken
+    // todo(ludo): add description
+    #[serde(rename = "associationToken")]
     pub association_token: Option<String>,
     // Private key, encrypted
-    // todo(ludo): add description, serialize to privateKey
+    // todo(ludo): add description
+    #[serde(rename = "privateKey")]
     pub private_key: Option<EncryptedPayload>,
-    // todo(ludo): add description, serialize to publicKeys
+    // todo(ludo): add description
+    #[serde(rename = "publicKeys")]
     pub public_keys: Option<Vec<String>>,
 }
 
