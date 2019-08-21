@@ -36,10 +36,6 @@ const BFS_DIR_ATTR: FileAttr = FileAttr {
 const TEMP_CONTENT: &'static str = "Hello World!\n";
 
 pub struct FS {
-    // cached_lookup: HashMap<(u32, OsString), FileAttr>,
-    // cached_getattr: HashMap<(u32, u64), FileAttr>,
-    // authenticator: LocalAuthenticator,
-    // file_map: FileMap
     sync_engine: SyncEngine
 }
 
@@ -59,13 +55,11 @@ impl fuse::Filesystem for FS {
 
     /// Open a directory.
     fn opendir(&mut self, _req: &Request, ino: u64, _flags: u32, reply: ReplyOpen) {
-        error!("opendir: {}", ino);
         reply.opened(1, 0);
     }
 
     /// Read directory.
     fn readdir(&mut self, req: &Request, ino: u64, fh: u64, offset: i64, mut reply: ReplyDirectory) {
-        error!("readdir: {} - {:?}", ino, req);
 
         if ino < 1 {
             reply.error(ENOENT);
@@ -94,14 +88,11 @@ impl fuse::Filesystem for FS {
 
     /// Release an open directory.
     fn releasedir(&mut self, _req: &Request, ino: u64, _fh: u64, _flags: u32, reply: ReplyEmpty) {
-        error!("releasedir: {}", ino);
         reply.ok();
     }
 
     /// Look up a directory entry by name and get its attributes.
     fn lookup(&mut self, req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
-        error!("lookup: {:?} {:?} {:?}", name, req, parent);
-
         if parent < 1 {
             reply.error(ENOENT);
             return
@@ -116,7 +107,6 @@ impl fuse::Filesystem for FS {
                 return
             }
         };
-        error!("lookup: {:?} {:?}", key, ino);
 
         let (_, attrs) = match self.sync_engine.file_map.files.get(&ino) {
             Some(res) => res,
@@ -125,13 +115,11 @@ impl fuse::Filesystem for FS {
                 return
             }
         }; 
-        error!("lookup: {:?}", attrs);
 
         reply.entry(&TTL, &attrs, 0);
     }
 
     fn getattr(&mut self, req: &Request, ino: u64, reply: ReplyAttr) {
-        error!("getattr: {} - {:?}", ino, req);
 
         match ino {
             1 => reply.attr(&TTL, &BFS_DIR_ATTR),

@@ -45,12 +45,10 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     
     env_logger::init();
     let mountpoint = env::args_os().nth(1).unwrap();
-    let options = ["fsname=hello"]
+    let options = ["fsname=Gaia"]
         .iter()
         .map(|o| o.as_ref())
         .collect::<Vec<&OsStr>>();
-
-    let path = "/";
 
     println!("Mnemonic (12 words):");
     let mut input = String::new();
@@ -107,9 +105,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             let comps: Vec<&str> = app_domain_striped.split(".").collect();
             OsString::from(comps.join("-"))
         };
-        println!("Mounting {:?}", app_name);
-
-        // file_map.new_directory(1, &app_name);
+        println!("Caching {:?}", app_name);
 
         let command = CreateAuthorizationRequestToken::new(
             app_domain.to_string(),
@@ -164,15 +160,12 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
         let app_secret_key = 
         sync_engine.register_endpoint(app_name, url.to_string(), hub_token).await;
-
-
-        // authorization_tokens.insert(app_name.to_string(), authorization_token);
     }
 
+    println!("Volume mounted");
+
     let filesystem = FS::new(sync_engine);
-
     fuse::mount(filesystem, &mountpoint, &options).unwrap();
-
 
     Ok(())
 }

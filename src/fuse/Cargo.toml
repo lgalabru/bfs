@@ -11,6 +11,7 @@ bfs = { package = "lib-bfs", path = "../lib_bfs" }
 bfs_commands = { package = "bfs-commands", path = "../lib_bfs/src/commands" }
 bfs_api = { package = "bfs-api", path = "../lib_bfs/src/api" }
 bfs_auth = { package = "bfs-auth", path = "../lib_bfs/src/auth" }
+bfs_http_client = { package = "bfs-http-client", path = "../http/src/client" }
 env_logger = "0.6.0"
 fuse = "0.3.1"
 time = "0.1.42"

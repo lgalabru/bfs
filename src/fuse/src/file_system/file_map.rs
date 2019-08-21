@@ -38,9 +38,6 @@ impl FileMap {
         self.directory_entries.insert(ino, Vec::new());
     }
 
-    // file_map.register_volume(&app_name, authorization_token);
-    // authorization_tokens.insert(app_name.to_string(), authorization_token);
-
     pub fn register_regular_file(&mut self, parent: u64, name: &OsStr) -> FileAttr {
 
         let file_attr = self.new_file(FileType::RegularFile);
