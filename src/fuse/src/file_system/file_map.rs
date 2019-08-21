@@ -58,6 +58,11 @@ impl FileMap {
 
     pub fn register_directory(&mut self, parent: u64, name: &OsStr) -> FileAttr {
 
+        if let Some(ino) = self.lookup.get(&(parent, name.to_os_string())) {
+            let (_, file_attr) = self.files.get(ino).unwrap();
+            return *file_attr;
+        }
+
         let file_attr = self.new_file(FileType::Directory);
         let ino = file_attr.ino;
         
