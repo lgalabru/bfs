@@ -72,7 +72,7 @@ impl CreateAssociationToken {
             let sig_serialized = sig.serialize_compact().to_vec();
 
             let sig_b64 = base64::encode_config(&sig_serialized, base64::URL_SAFE);
-            [signing_input, sig_b64].join(".")
+            format!("v1:{}.{}", signing_input, sig_b64)
         };
 
         Ok(association_token)

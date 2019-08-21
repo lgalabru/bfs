@@ -10,7 +10,9 @@ use crate::v1::{
         authorization_claims::Payload
     },
     errors::Error,
-    helpers::get_address_from_public_key
+    helpers::get_address_from_public_key,
+    DecryptContent,
+    VerifyAssociationToken,
 };
 
 pub struct VerifyAuthorizationToken {
@@ -22,20 +24,23 @@ pub struct VerifyAuthorizationToken {
     valid_hub_urls: Option<Vec<String>>,
     // todo(ludo): add description
     challenge_texts: Option<Vec<String>>,
+    // todo(ludo): add description
+    transit_secret_key: Vec<u8>
 }
 
 impl VerifyAuthorizationToken {
 
-    pub fn new(token: String) -> Self {
+    pub fn new(token: String, transit_secret_key: Vec<u8>) -> Self {
         Self {
             token,
             issuer_address: None,
             valid_hub_urls: None,
-            challenge_texts: None
+            challenge_texts: None,
+            transit_secret_key
         }
     }
 
-    pub fn validate(&mut self) -> Result<(), Error> {
+    pub fn run(&mut self) -> Result<Vec<u8>, Error> {
         let version_prefix = "v1:";
         let (version, jwt_token) = self.token.split_at(version_prefix.len());
         if version != version_prefix {
@@ -90,8 +95,15 @@ impl VerifyAuthorizationToken {
             return Err(Error::PrincipalMissing);
         }
 
-        let public_key = payload.iss.unwrap();
-        let address = get_address_from_public_key(&public_key);
+        let user_public_key = {
+            let mut command = VerifyAssociationToken::new(payload.association_token.unwrap());
+            let (_, payload) = command.run().unwrap(); // todo(ludo): fix unwrap
+            payload.iss.unwrap()
+        };
+
+        // let public_key = payload.iss.unwrap();
+        // println!("=> {:?}", public_key);
+        // let address = get_address_from_public_key(&public_key);
 
         // Check Signature
         let sig_verification = {
@@ -111,7 +123,7 @@ impl VerifyAuthorizationToken {
 
             // Verify signature
             let secp = Secp256k1::verification_only();
-            let pub_key_hex = hex::decode(&public_key).unwrap();
+            let pub_key_hex = hex::decode(&user_public_key).unwrap();
             let public_key = PublicKey::from_slice(&pub_key_hex).expect("public keys must be 33 or 65 bytes, serialized according to SEC 2");
             let message = Message::from_slice(&signing_input_hashed).expect("messages must be 32 bytes and are expected to be hashes");
             let sig = Signature::from_compact(&compact_sig).expect("compact signatures are 64 bytes;");
@@ -119,6 +131,10 @@ impl VerifyAuthorizationToken {
         };
 
         assert!(sig_verification.is_ok());
+
+        // todo(ludo): fix unwrap
+        let command = DecryptContent::new(self.transit_secret_key.clone(), payload.private_key.unwrap());
+        let decrypted_data = command.run().unwrap();
 
         // todo(ludo): Check payload.iss / address against issuerAddress
         // todo(ludo): Check payload.iat against options.oldestValidTokenTimestamp (1)
@@ -128,6 +144,7 @@ impl VerifyAuthorizationToken {
         // todo(ludo): Check payload.exp against time.now
         // todo(ludo): Check payload.associationToken
 
-        Ok(())
+        Ok(decrypted_data)
     }
 }
+

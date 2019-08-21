@@ -6,6 +6,7 @@ use crate::v1::{
     types::{AuthScope},
     helpers::{
         get_hardened_child_keypair,
+        get_address_from_public_key
     },
     errors::Error,
     // Commands
@@ -108,8 +109,9 @@ impl CreateAuthorizationToken {
 
         // Build payload based on authorization claims
         let payload = {
+            let address = get_address_from_public_key(&user_public_key).unwrap(); // todo(ludo): handle unwrap()
             let payload = Payload::new(
-                user_public_key,
+                address,
                 association_token,
                 encrypted_app_sk,
                 vec![app_pk]
@@ -151,7 +153,7 @@ impl CreateAuthorizationToken {
             let sig_serialized = sig.serialize_compact().to_vec();
 
             let sig_b64 = base64::encode_config(&sig_serialized, base64::URL_SAFE);
-            [signing_input, sig_b64].join(".")
+            format!("v1:{}.{}", signing_input, sig_b64)
         };
 
         Ok(authorization_token)

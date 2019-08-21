@@ -3,6 +3,7 @@ use rand::{Rng, thread_rng};
 use hex;
 use uuid::Uuid;
 use crate::v1::types::{AuthScope, EncryptedPayload};
+use crate::v1::jwt::{Salt};
 
 /// JWT Claims Set for "Authorization tokens"
 #[derive(Serialize, Deserialize)]
@@ -39,7 +40,7 @@ pub struct Payload {
 
 impl Payload {
 
-    pub fn new(user_public_key: String, 
+    pub fn new(address: String, 
                association_token: String, 
                app_secret_key: EncryptedPayload,
                app_public_keys: Vec<String>) -> Self {
@@ -53,8 +54,7 @@ impl Payload {
         rng.fill(&mut salt);
         let salt_hex = hex::encode(&salt);
 
-        // todo(ludo): convert pk to add
-        let did = format!("did:btc-addr:{}", user_public_key);
+        let did = format!("did:btc-addr:{}", address);
 
         // todo(ludo): encode secret key
 
@@ -75,10 +75,4 @@ impl Payload {
             public_keys: Some(app_public_keys)
         }
     }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Salt {
-    pub r#type: Option<String>,
-    pub data: Option<Vec<u8>>
 }

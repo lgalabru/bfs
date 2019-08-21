@@ -1,6 +1,7 @@
 pub mod association_claims;
 pub mod authorization_claims;
 pub mod authorization_request_claims;
+pub mod hub_claims;
 
 use serde::{Deserialize, Serialize};
 
@@ -28,4 +29,10 @@ impl Header {
             typ: Some("JWT".to_string())
         }
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Salt {
+    pub r#type: Option<String>,
+    pub data: Option<Vec<u8>>
 }
