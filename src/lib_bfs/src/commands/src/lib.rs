@@ -20,6 +20,7 @@ impl AuthenticationToken {
 
 #[derive(Debug)]
 pub enum AuthenticationError {
+    Unknown,
     TimeOutError
 }
 

@@ -38,10 +38,10 @@ impl AuthenticationDelegate for HTTPHeaderAuthenticator {
 async fn hello(_: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     let authentication_delegate = HeaderAuthenticator::new();
 
-    let prefix_path = "/";
+    let path = "/";
     //
     let builder = ListFilesCommandBuilder::new(
-        OsString::from(prefix_path),
+        OsString::from(path),
         &authentication_delegate 
     );
     let res = builder.run().await;

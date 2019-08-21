@@ -77,11 +77,11 @@ async fn main() {
 
     match matches.subcommand() {
         ("ls", Some(clone_matches)) => {
-            let prefix_path = match clone_matches.value_of("path") {
+            let path = match clone_matches.value_of("path") {
                 Some(path) => path,
                 None => "/"
             };
-            list_files(prefix_path).await;
+            list_files(path).await;
         },
         ("rm", Some(clone_matches)) => {
             let path = match clone_matches.value_of("path") {
@@ -112,11 +112,11 @@ async fn main() {
     }
 }
 
-async fn list_files(prefix_path: &str) {
+async fn list_files(path: &str) {
     let authentication_delegate = LocalAuthenticator::new();
 
     let builder = ListFilesCommandBuilder::new(
-        OsString::from(prefix_path),
+        OsString::from(path),
         &authentication_delegate 
     );
     let res = builder.run().await;

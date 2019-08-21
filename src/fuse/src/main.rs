@@ -27,6 +27,8 @@ use bfs_auth::v1::{
     },
     CreateAuthorizationToken,
     CreateAuthorizationRequestToken,
+    VerifyAuthorizationToken,
+    CreateHubToken,
     types::AuthScope
 };
 
@@ -48,7 +50,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .map(|o| o.as_ref())
         .collect::<Vec<&OsStr>>();
 
-    let prefix_path = "/";
+    let path = "/";
 
     println!("Mnemonic (12 words):");
     let mut input = String::new();
@@ -124,10 +126,12 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             Err(e) => panic!()
         };
 
+        // let challenge = "[\"gaiahub\",\"0\",\"hub\",\"blockstack_storage_please_sign\"]".to_string();
+        let challenge = "[\"gaiahub\",\"0\",\"storage2.blockstack.org\",\"blockstack_storage_please_sign\"]".to_string();
         let command = CreateAuthorizationToken::new(
             bip39_seed.clone(),
             authorization_request_token,
-            "".to_string(), // todo(ludo): fill gaia_challenge
+            challenge.clone(), // todo(ludo): fill gaia_challenge
             url.to_string(),
             0
         );
@@ -137,7 +141,29 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             Err(e) => panic!()
         };
 
-        sync_engine.register_endpoint(app_name, url.to_string(), authorization_token).await;
+        let mut command = VerifyAuthorizationToken::new(
+            authorization_token.clone(),
+            transit_secret_key
+        );
+
+        let app_secret_key = match command.run() {
+            Ok(token) => token,
+            Err(e) => panic!()
+        };
+
+        let command = CreateHubToken::new(
+            app_secret_key.clone(),
+            challenge.clone(), // todo(ludo): fill gaia_challenge
+            url.to_string()
+        );
+
+        let hub_token = match command.run() {
+            Ok(token) => token,
+            Err(e) => panic!()
+        };
+
+        let app_secret_key = 
+        sync_engine.register_endpoint(app_name, url.to_string(), hub_token).await;
 
 
         // authorization_tokens.insert(app_name.to_string(), authorization_token);
