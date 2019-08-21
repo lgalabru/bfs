@@ -78,7 +78,7 @@ impl StorageDriver for S3Driver {
                         files.push(File {
                             name: name.to_os_string(),
                             path: path.as_os_str().to_os_string(),
-                            storage_top_level: params.prefix_path.clone(),
+                            storage_top_level: params.path.clone(),
                             updated_at,
                             content: None,
                             content_type: None,

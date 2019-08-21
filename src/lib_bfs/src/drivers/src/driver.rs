@@ -22,7 +22,7 @@ pub struct TearDownParams {
 
 #[derive(Debug)]
 pub struct ListFilesParams {
-    pub prefix_path: OsString, 
+    pub path: OsString, 
 
     pub page: Option<u32>
 }

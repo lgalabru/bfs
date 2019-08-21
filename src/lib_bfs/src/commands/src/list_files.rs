@@ -24,7 +24,7 @@ pub type CommandBuildResult = Result<ListFilesCommand, CommandBuildError>;
 
 pub struct ListFilesCommand {
 
-    pub prefix_path: OsString, 
+    pub path: OsString, 
     
     pub page: Option<u32>,
 
@@ -33,7 +33,7 @@ pub struct ListFilesCommand {
 
 pub struct ListFilesCommandBuilder<'a> {
     
-    pub prefix_path: OsString, 
+    pub path: OsString, 
     
     pub page: Option<u32>,
 
@@ -42,9 +42,9 @@ pub struct ListFilesCommandBuilder<'a> {
 
 impl <'a> ListFilesCommandBuilder <'a> {
 
-    pub fn new(prefix_path: OsString, authentication_delegate: &'a dyn AuthenticationDelegate) -> ListFilesCommandBuilder<'a> {
+    pub fn new(path: OsString, authentication_delegate: &'a dyn AuthenticationDelegate) -> ListFilesCommandBuilder<'a> {
         ListFilesCommandBuilder {
-            prefix_path,
+            path,
             page: None,
             authentication_delegate
         }
@@ -58,9 +58,9 @@ impl <'a> ListFilesCommandBuilder <'a> {
         let authorization_token = result.unwrap().value;
 
         Ok(ListFilesCommand {
-            prefix_path: self.prefix_path.clone(),
+            path: self.path.clone(),
             page: self.page,
-            authorization_token
+            authorization_token,
         })
     }
 }
@@ -81,10 +81,10 @@ impl <'a> ListFilesCommandHandler<'a> {
         println!("Verifying token {}...", self.command.authorization_token);
 
         // Check authorization
-        println!("Listing files in {:?}", self.command.prefix_path);
+        println!("Listing files in {:?}", self.command.path);
 
         let params = ListFilesParams {
-            prefix_path: self.command.prefix_path.clone(),
+            path: self.command.path.clone(),
             page: self.command.page
         };
         S3Driver::list_files(params)
