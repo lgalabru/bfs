@@ -6,7 +6,7 @@ use time::Timespec;
 const CREATE_TIME: Timespec = Timespec { sec: 1381237736, nsec: 0 };
 
 pub struct FileMap {
-    /// todo(ludo): add description
+    /// Auto-increment - next inode
     next_inode: u64,
     /// Keep track of files: (u64, )
     pub files: HashMap<u64, (OsString, FileAttr)>,

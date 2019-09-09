@@ -6,7 +6,7 @@ pub enum Error {
     Unknown,
 }
 
-pub fn get_names(address: &str) -> Result<Vec<String>, Error> {
+pub fn get_identities(address: &str) -> Result<Vec<String>, Error> {
     let url = format!("https://core.blockstack.org/v1/addresses/bitcoin/{}", address);
     let payload: HashMap<String, Vec<String>> = reqwest::get(&url).unwrap().json().unwrap();
     // todo(ludo): handle these unwrap()

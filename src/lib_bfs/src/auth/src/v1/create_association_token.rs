@@ -57,12 +57,11 @@ impl CreateAssociationToken {
 
         // Build the association token
         let association_token = {
-            // todo(ludo): merge slices instead
-            let signing_input = [header, payload].join(".");
+            let signing_input = format!("{}.{}", header, payload);
 
             // SHA256
             let mut sha2 = Sha256::new();
-            sha2.input(signing_input.clone());
+            sha2.input(signing_input);
             let signing_input_hashed = sha2.result();
 
             let secp = Secp256k1::signing_only();
@@ -72,7 +71,7 @@ impl CreateAssociationToken {
             let sig_serialized = sig.serialize_compact().to_vec();
 
             let sig_b64 = base64::encode_config(&sig_serialized, base64::URL_SAFE);
-            format!("v1:{}.{}", signing_input, sig_b64)
+            format!("v1:{}.{}.{}", header, payload, sig_b64)
         };
 
         Ok(association_token)

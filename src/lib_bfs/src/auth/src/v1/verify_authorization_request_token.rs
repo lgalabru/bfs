@@ -41,8 +41,7 @@ impl VerifyAuthorizationRequestToken {
             return Err(Error::MalFormattedToken);
         }
 
-        // todo(ludo): merge slices instead?
-        let signing_input = [jwt_parts[0].clone(), jwt_parts[1].clone()].join(".");
+        let signing_input = format!("{}.{}", jwt_parts[0], jwt_parts[1]);
         let signature = jwt_parts[2];
 
         let header: Header = {

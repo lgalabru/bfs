@@ -14,9 +14,10 @@ pub struct Payload {
     pub iat: Option<u64>,
     /// Expiration time on or after which the JWT MUST NOT be accepted for processing.
     pub exp: Option<u64>,
-    /// Add some salt to limit replay attacks
+    /// Add some salt to limit replay attacks - look at signing oracles
     pub salt: Option<String>,
-    // todo(ludo): add description, serialize to childToAssociate
+    /// App public key to associate
+    #[serde(rename = "childToAssociate")]
     pub child_to_associate: Option<String>
 }
 

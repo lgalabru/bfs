@@ -17,11 +17,11 @@ use secp256k1::{
 use sha2::{Sha256, Digest};
 
 pub struct CreateAuthorizationRequestToken {
-    // todo(ludo): add description
+    // Blockstack apps are uniquely identified by their app domain
     app_domain: String,
-    // todo(ludo): add description
+    // URI of app's manifest file
     manifest_uri: String,
-    // todo(ludo): add description
+    // URI to redirect users to after authentication
     redirect_uri: String,
     // todo(ludo): add description
     version: String,
@@ -29,7 +29,7 @@ pub struct CreateAuthorizationRequestToken {
     do_not_include_profile: bool,
     // todo(ludo): add description
     supports_hub_url: bool,
-    // todo(ludo): add description
+    // Array of permissions requested by the app
     scopes: Vec<AuthScope>,
 }
 
@@ -101,13 +101,12 @@ impl CreateAuthorizationRequestToken {
             base64::encode_config(&header_json, base64::URL_SAFE_NO_PAD)
         };
 
+        // Build JWT authorization_request_token
         let authorization_request_token = {
-            // todo(ludo): merge slices instead
-            let signing_input = [header, payload].join(".");
+            let signing_input = format!("{}.{}", header, payload);
 
-            // SHA256
             let mut sha2 = Sha256::new();
-            sha2.input(signing_input.clone());
+            sha2.input(signing_input);
             let signing_input_hashed = sha2.result();
 
             let secp = Secp256k1::signing_only();
@@ -116,7 +115,7 @@ impl CreateAuthorizationRequestToken {
             let sig_serialized = sig.serialize_compact().to_vec();
 
             let sig_b64 = base64::encode_config(&sig_serialized, base64::URL_SAFE);
-            format!("v1:{}.{}", signing_input, sig_b64)
+            format!("v1:{}.{}.{}", header, payload, sig_b64)
         };
         let transit_sk_hex = hex::decode(&transit_sk.to_string()).unwrap();
 

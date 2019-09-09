@@ -37,21 +37,20 @@ impl SyncEngine {
     pub async fn register_endpoint(&mut self, name: OsString, url: String, authorization_token: String) {
         let attr = self.file_map.register_directory(1, &name);
         self.authenticator_map.insert(attr.ino, (name, url.clone(), Authenticator::new(authorization_token))); // todo(ludo): fix unwrap
-        self.sync_dir(attr, String::from("/"), url).await;
+        self.sync_dir(attr, OsString::from("/"), url).await;
     }
 
-    /// todo(ludo): sort out the str / osstr / cloned situation
-    pub async fn sync_dir(&mut self, dir_attr: FileAttr, path: String, endpoint_url: String) {
+    pub async fn sync_dir(&mut self, dir_attr: FileAttr, path: OsString, endpoint_url: String) {
 
         let (_, _, authenticator) = self.authenticator_map.get(&dir_attr.ino).unwrap();
         let builder = ListFilesCommandBuilder::new(
-            OsString::from(path.clone()),
+            path.clone(),
             authenticator 
         );
         let res = builder.run().await;
         let command = res.unwrap();
 
-        let result = bfs_http_client::list_files(&endpoint_url, &command.authorization_token, &path);
+        let result = bfs_http_client::list_files(&endpoint_url, &command.authorization_token, path);
 
         match result {
             Ok(payload) => {

@@ -66,16 +66,19 @@ impl fuse::Filesystem for FS {
             return;
         }
 
-
         let mut curr_offs = offset + 1;
         match self.sync_engine.file_map.directory_entries.get(&ino) {
             Some(entries) => {
                 for file_ino in entries.iter().skip(offset as usize) {                    
-                    let (name, attrs) = self.sync_engine.file_map.files.get(file_ino).unwrap(); // todo(ludo): fix unwrap
-                    if reply.add(*file_ino, curr_offs, attrs.kind , &name.clone()) {
-                        break;
+                    if let Some((name, attrs)) = self.sync_engine.file_map.files.get(file_ino) {
+                        if reply.add(*file_ino, curr_offs, attrs.kind , &name.clone()) {
+                            break;
+                        } else {
+                            curr_offs += 1;
+                        }
                     } else {
-                        curr_offs += 1;
+                        reply.error(ENOENT);
+                        return;
                     }
                 }
                 reply.ok();
@@ -124,8 +127,12 @@ impl fuse::Filesystem for FS {
         match ino {
             1 => reply.attr(&TTL, &BFS_DIR_ATTR),
             _ => {
-                let (_, attrs) = self.sync_engine.file_map.files.get(&ino).unwrap(); // todo(ludo): fix unwrap
-                reply.attr(&TTL, &attrs);
+                if let Some((_, attrs)) = self.sync_engine.file_map.files.get(&ino) {
+                    reply.attr(&TTL, &attrs);
+                } else {
+                    reply.error(ENOENT);
+                    return
+                }
             }
         }
     }

@@ -16,7 +16,7 @@ pub struct Payload {
     pub iat: Option<u64>,
     /// Expiration time on or after which the JWT MUST NOT be accepted for processing.
     pub exp: Option<u64>,
-    // todo(ludo): add description
+    // Array of permissions requested by the app
     pub scopes: Option<Vec<AuthScope>>,
     // todo(ludo): add description
     #[serde(rename = "gaiaChallenge")]
@@ -29,11 +29,10 @@ pub struct Payload {
     // todo(ludo): add description
     #[serde(rename = "associationToken")]
     pub association_token: Option<String>,
-    // Private key, encrypted
-    // todo(ludo): add description
+    // App private key, encrypted
     #[serde(rename = "privateKey")]
     pub private_key: Option<EncryptedPayload>,
-    // todo(ludo): add description
+    // App public key
     #[serde(rename = "publicKeys")]
     pub public_keys: Option<Vec<String>>,
 }

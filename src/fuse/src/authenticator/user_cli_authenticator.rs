@@ -46,7 +46,7 @@ impl UserCliAuthenticator {
             Err(e) => { return Err(AuthenticationError::Unknown) }
         };
         phrase.pop();
-        let mnemonic = match Mnemonic::from_phrase(phrase, Language::English) {
+        let mnemonic = match Mnemonic::from_phrase(phrase.clone(), Language::English) {
             Ok(mnemonic) => mnemonic,
             Err(e) => { return Err(AuthenticationError::Unknown) }
         };
@@ -73,8 +73,6 @@ impl UserCliAuthenticator {
             Err(e) => { return Err(AuthenticationError::Unknown) }
         };
 
-        // println!("ART-> {}", authorization_request_token);
-
         let command = CreateAuthorizationToken::new(
             bip39_seed,
             authorization_request_token,
@@ -87,7 +85,6 @@ impl UserCliAuthenticator {
             Ok(token) => token,
             Err(e) => { return Err(AuthenticationError::Unknown) }
         };
-        // println!("AT-> {}", authorization_token);
 
         Ok(AuthenticationToken::new(&authorization_token))
     }

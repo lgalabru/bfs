@@ -13,13 +13,14 @@ pub struct Payload {
     pub iat: Option<u64>,
     /// Expiration time on or after which the JWT MUST NOT be accepted for processing.
     pub exp: Option<u64>,
-    // todo(ludo): add description
+    // Array of permissions requested by the app
     pub scopes: Option<Vec<AuthScope>>,
-    // todo(ludo): add description, should serialize to domain_name (?)
+    // todo(ludo): add description
+    #[serde(rename = "domain_name")]
     pub app_domain: Option<String>,
-    // todo(ludo): add description
+    // URI of app's manifest file
     pub manifest_uri: Option<String>,
-    // todo(ludo): add description
+    // URI to redirect users to after authentication
     pub redirect_uri: Option<String>,
     // todo(ludo): add description
     pub do_not_include_profile: Option<bool>,

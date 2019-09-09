@@ -11,7 +11,7 @@ use tokio::runtime::Runtime;
 
 use bip39::{Mnemonic, Seed, Language};
 
-use bfs_api::{get_names, get_user};
+use bfs_api::{get_identities, get_user};
 
 use bfs_commands::{
     AuthenticationDelegate,
@@ -78,17 +78,38 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         Err(e) => { panic!() }
     };
 
-    let name = match get_names(&address) {
-        Ok(names) => names[0].clone(),  // todo(ludo): handle multiple identities
+    println!("Retrieving identities...");
+    let identity = match get_identities(&address) {
+        Ok(identities) => {
+
+            for (i, identity) in identities.iter().enumerate() {
+                println!("[{}] {:?}", i, identity);
+            }
+            
+            if identities.len() == 1 {
+                identities[0].clone()
+            } else {
+                println!("Identity to load:");
+                let mut input = String::new();
+                let mut identity_index = match io::stdin().read_line(&mut input) {
+                    Ok(_) => input,
+                    Err(e) => { panic!() }
+                };
+                identity_index.pop();
+                let identity_index = identity_index.parse::<usize>().unwrap();
+                identities[identity_index].clone()
+            }
+        },
+        Err(_) => panic!() 
+    };
+    println!("Loading {:?}", identity);
+
+    let users = match get_user(&identity) {
+        Ok(users) => users,
         Err(_) => panic!() 
     };
 
-    let users = match get_user(&name) {
-        Ok(users) => users, // todo(ludo): handle multiple profiles
-        Err(_) => panic!() 
-    };
-
-    let user = users.get(&name).unwrap();
+    let user = users.get(&identity).unwrap();
     let authorization_tokens: HashMap<String, String> = HashMap::new();
     let mut sync_engine = SyncEngine::new();
 

@@ -112,11 +112,11 @@ async fn main() {
     }
 }
 
-async fn list_files(path: &str) {
+async fn list_files(path: OsString) {
     let authentication_delegate = LocalAuthenticator::new();
 
     let builder = ListFilesCommandBuilder::new(
-        OsString::from(path),
+        path,
         &authentication_delegate 
     );
     let res = builder.run().await;
