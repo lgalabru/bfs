@@ -1,9 +1,0 @@
-[package]
-name = "lib-bfs"
-version = "0.1.0"
-authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
-edition = "2018"
-
-[dependencies]
-commands = { package = "bfs-commands", path = "./src/commands" }
-primitives = { package = "bfs-primitives", path = "./src/primitives" }

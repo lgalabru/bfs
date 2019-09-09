@@ -1,0 +1,11 @@
+[package]
+name = "lib-blockstack"
+version = "0.1.0"
+authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
+edition = "2018"
+
+[dependencies]
+commands = { package = "blockstack-auth", path = "./src/auth" }
+bns = { package = "blockstack-bns", path = "./src/bns" }
+storage = { package = "blockstack-storage", path = "./src/storage/core" }
+primitives = { package = "blockstack-primitives", path = "./src/primitives" }
