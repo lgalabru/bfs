@@ -1,5 +1,6 @@
 pub mod file;
 pub mod errors;
+pub mod driver;
 
 #[cfg(test)]
 mod tests {

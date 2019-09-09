@@ -1,5 +1,5 @@
 use std::ffi::OsString;
-use primitives::{
+use super::{
     file::{
         File,
         TearUpResult,

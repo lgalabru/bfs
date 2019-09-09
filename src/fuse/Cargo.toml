@@ -7,10 +7,7 @@ edition = "2018"
 [dependencies]
 async-trait = "0.1.7"
 bip39 = "0.6.0-beta.1"
-bfs = { package = "lib-bfs", path = "../lib_bfs" }
-bfs_commands = { package = "bfs-commands", path = "../lib_bfs/src/commands" }
-bfs_api = { package = "bfs-api", path = "../lib_bfs/src/api" }
-bfs_auth = { package = "bfs-auth", path = "../lib_bfs/src/auth" }
+blockstack = { package = "lib-blockstack", path = "../lib_blockstack" }
 bfs_http_client = { package = "bfs-http-client", path = "../http/src/client" }
 env_logger = "0.6.0"
 fuse = "0.3.1"
@@ -18,6 +15,5 @@ time = "0.1.42"
 libc = "0.2.59"
 log = "0.4.6"
 thread-scoped = "1.0.2"
-primitives = { package = "bfs-primitives", path = "../lib_bfs/src/primitives" }
 tokio = "=0.2.0-alpha.1"
 # web-view = "0.4.1"

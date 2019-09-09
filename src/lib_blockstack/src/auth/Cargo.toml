@@ -20,6 +20,5 @@ uuid = { version = "0.7", features = ["v4"] }
 hmac = "0.7.0"
 pbkdf2 = { version = "0.3.0", features=["parallel"], default-features = false }
 
-
 # todo(ludo): crates added as shortcuts - should be re-implemented
 hex = "0.3.2"

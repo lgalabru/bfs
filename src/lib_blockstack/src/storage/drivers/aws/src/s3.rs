@@ -1,7 +1,5 @@
-use drivers::{
-    driver::*
-};
-use primitives::{
+use blockstack_types::{
+    driver::*,
     file::{
         File,
         TearUpResult,

@@ -36,8 +36,7 @@ impl File {
 pub struct TearUpResult;
 
 #[derive(Debug)]
-pub struct TearDownResult {
-}
+pub struct TearDownResult;
 
 #[derive(Debug)]
 pub struct ListFilesResult {

@@ -5,7 +5,7 @@ use time::Timespec;
 use fuse::{FileType, FileAttr, Request, ReplyData, ReplyEntry, ReplyEmpty, ReplyOpen, ReplyAttr, ReplyDirectory};
 use crate::file_system::{SyncEngine};
 
-use primitives::{
+use blockstack::types::{
     file::{
         File, 
         ListFilesResult

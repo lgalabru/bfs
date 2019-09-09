@@ -1,5 +1,5 @@
 [package]
-name = "blockstack-primitives"
+name = "blockstack-types"
 version = "0.1.0"
 authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
 edition = "2018"

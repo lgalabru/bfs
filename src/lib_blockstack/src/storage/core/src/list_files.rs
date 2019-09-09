@@ -1,17 +1,14 @@
 use std::ffi::{OsString};
-use drivers::{
+use blockstack_types::{
+    file::ListFilesResult,
+    errors::Error,
     driver::{
         StorageDriver,
         ListFilesParams
     }
 };
 
-use primitives::{
-    file::ListFilesResult,
-    errors::Error
-};
-
-use drivers_aws::s3::S3Driver;
+use blockstack_storage_aws::s3::S3Driver;
 use crate::{AuthenticationDelegate};
 
 #[derive(Debug)]

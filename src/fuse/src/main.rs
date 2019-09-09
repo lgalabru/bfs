@@ -11,29 +11,20 @@ use tokio::runtime::Runtime;
 
 use bip39::{Mnemonic, Seed, Language};
 
-use bfs_api::{get_identities, get_user};
-
-use bfs_commands::{
-    AuthenticationDelegate,
-    AuthenticationResult,
-    AuthenticationError,
-    AuthenticationToken
-};
-use bfs_auth::v1::{
+use blockstack::bns::{get_identities, get_user};
+use blockstack::auth::v1::{
     helpers:: {
         get_bip39_seed_from_mnemonic, 
         get_hardened_child_keypair,
         get_address_from_public_key
     },
-    CreateAuthorizationToken,
-    CreateAuthorizationRequestToken,
-    VerifyAuthorizationToken,
-    CreateHubToken,
+    tokens:: {
+        CreateAuthorizationToken,
+        CreateAuthorizationRequestToken,
+        VerifyAuthorizationToken,
+        CreateHubToken
+    },
     types::AuthScope
-};
-
-use bfs_commands::{
-    list_files::{ListFilesCommandBuilder, ListFilesCommandHandler},
 };
 
 mod file_system;

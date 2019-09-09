@@ -1,6 +1,6 @@
 use std::collections::{HashMap, VecDeque};
 use std::ffi::{OsString};
-use bfs_commands::{
+use blockstack::storage::{
     AuthenticationDelegate,
     AuthenticationResult,
     AuthenticationError,
@@ -9,7 +9,7 @@ use bfs_commands::{
 use fuse::{FileType, FileAttr};
 use crate::file_system::{FileMap};
 use crate::authenticator::{Authenticator};
-use bfs_commands::{
+use blockstack::storage::{
     list_files::{ListFilesCommandBuilder, ListFilesCommandHandler},
 };
 

@@ -5,7 +5,7 @@ authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
 edition = "2018"
 
 [dependencies]
-commands = { package = "blockstack-auth", path = "./src/auth" }
+auth = { package = "blockstack-auth", path = "./src/auth" }
 bns = { package = "blockstack-bns", path = "./src/bns" }
 storage = { package = "blockstack-storage", path = "./src/storage/core" }
-primitives = { package = "blockstack-primitives", path = "./src/primitives" }
+types = { package = "blockstack-types", path = "./src/types" }

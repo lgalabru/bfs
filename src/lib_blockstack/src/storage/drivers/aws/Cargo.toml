@@ -1,5 +1,5 @@
 [package]
-name = "bfs-drivers-aws"
+name = "blockstack-storage-aws"
 version = "0.1.0"
 authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
 edition = "2018"
@@ -8,7 +8,6 @@ edition = "2018"
 rusoto_core = "0.40"
 rusoto_credential = "0.40"
 rusoto_s3 = "0.40"
-drivers = { package = "bfs-drivers", path = "../.." }
 futures = "0.1"
 tokio = "0.1"
-primitives = { package = "bfs-primitives", path = "../../../primitives" }
+blockstack_types = { package = "blockstack-types", path = "../../../types" }

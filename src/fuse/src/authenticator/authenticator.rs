@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use bfs_commands::{
+use blockstack::storage::{
     AuthenticationDelegate,
     AuthenticationResult,
     AuthenticationError,

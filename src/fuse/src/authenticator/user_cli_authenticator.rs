@@ -6,20 +6,22 @@ use std::io::{self, Read, Write, BufReader, BufRead};
 
 use bip39::{Mnemonic, Seed, Language};
 
-use bfs_commands::{
+use blockstack::storage::{
     AuthenticationDelegate,
     AuthenticationResult,
     AuthenticationError,
     AuthenticationToken
 };
-use bfs_auth::v1::{
-    helpers:: {
+use blockstack::auth::v1::{
+    helpers::{
         get_bip39_seed_from_mnemonic, 
         get_hardened_child_keypair
     },
-    CreateAppKeypair, 
-    CreateAuthorizationToken,
-    CreateAuthorizationRequestToken,
+    tokens::{
+        CreateAppKeypair, 
+        CreateAuthorizationToken,
+        CreateAuthorizationRequestToken,
+    },
     types::AuthScope
 };
 

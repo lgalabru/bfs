@@ -1,5 +1,5 @@
 [package]
-name = "blockstack-storage-core"
+name = "blockstack-storage"
 version = "0.1.0"
 authors = ["Ludovic Galabru <ludovic@blockstack.com>"]
 edition = "2018"
@@ -8,6 +8,6 @@ edition = "2018"
 serde_derive = "1"
 serde = "1"
 # todo(ludo): short cut
-driver_aws = { package = "blockstack-storage-aws", path = "../drivers/aws" }
-primitives = { package = "blockstack-primitives", path = "../../primitives" }
+blockstack_storage_aws = { package = "blockstack-storage-aws", path = "../drivers/aws" }
+blockstack_types = { package = "blockstack-types", path = "../../types" }
 async-trait = "0.1.7"
