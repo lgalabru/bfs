@@ -1,21 +1,15 @@
 use std::collections::{HashMap, VecDeque};
 use std::ffi::{OsString};
-use blockstack::storage::{
-    AuthenticationDelegate,
-    AuthenticationResult,
-    AuthenticationError,
-    AuthenticationToken
-};
-use fuse::{FileType, FileAttr};
+use fuse::{FileAttr};
 use crate::file_system::{FileMap};
 use crate::authenticator::{Authenticator};
 use blockstack::storage::{
-    list_files::{ListFilesCommandBuilder, ListFilesCommandHandler},
+    list_files::{ListFilesCommandBuilder},
 };
 
 pub struct Request {
-    endpoint: String,
-    path: String,
+    // endpoint: String,
+    // path: String,
 }
 
 pub struct SyncEngine {

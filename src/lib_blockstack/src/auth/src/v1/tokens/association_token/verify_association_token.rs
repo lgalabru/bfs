@@ -6,8 +6,7 @@ use hex;
 
 use crate::v1::{
     tokens::jwt::Header,
-    errors::Error,
-    helpers::get_address_from_public_key
+    errors::Error
 };
 use super::association_claims::Payload;
 

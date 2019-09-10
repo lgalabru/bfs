@@ -4,7 +4,6 @@ use crate::v1::{
 };
 use secp256k1::{
     Secp256k1, 
-    SecretKey, 
     PublicKey,
     rand::OsRng,
     ecdh::SharedSecret

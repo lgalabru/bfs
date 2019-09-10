@@ -10,7 +10,6 @@ use crate::v1::{
         VerifyAssociationToken,
     },
     errors::Error,
-    helpers::get_address_from_public_key,
     encryption::DecryptContent
 };
 use super::authorization_claims::Payload;

@@ -39,7 +39,6 @@ impl VerifyAuthorizationRequestToken {
             return Err(Error::MalFormattedToken);
         }
 
-        let signing_input = format!("{}.{}", jwt_parts[0], jwt_parts[1]);
         let signature = jwt_parts[2];
 
         let header: Header = {
@@ -94,11 +93,11 @@ impl VerifyAuthorizationRequestToken {
             }
             let compact_sig = w_url_safe_b64_decode.unwrap();
 
-            let signing_input = [jwt_parts[0].clone(), jwt_parts[1].clone()].join(".");
+            let signing_input = format!("{}.{}", jwt_parts[0], jwt_parts[1]);
             
             // SHA256
             let mut sha2 = Sha256::new();
-            sha2.input(signing_input.clone());
+            sha2.input(signing_input);
             let signing_input_hashed = sha2.result();
 
             // Verify signature

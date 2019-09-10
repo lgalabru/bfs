@@ -1,15 +1,11 @@
 #![feature(async_await)]
-#[macro_use] extern crate log;
 extern crate env_logger;
 use std::ffi::{OsStr, OsString};
 use std::io;
-use std::collections::HashMap;
 use std::env;
-use std::cmp;
 use file_system::{FS, SyncEngine};
-use tokio::runtime::Runtime;
 
-use bip39::{Mnemonic, Seed, Language};
+use bip39::{Mnemonic, Language};
 
 use blockstack::bns::{get_identities, get_user};
 use blockstack::auth::v1::{
@@ -23,8 +19,7 @@ use blockstack::auth::v1::{
         CreateAuthorizationRequestToken,
         VerifyAuthorizationToken,
         CreateHubToken
-    },
-    types::AuthScope
+    }
 };
 
 mod file_system;
@@ -45,28 +40,28 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let mut input = String::new();
     let mut phrase = match io::stdin().read_line(&mut input) {
         Ok(_) => input,
-        Err(e) => { panic!() }
+        Err(_) => { panic!() }
     };
     phrase.pop();
 
-    let mnemonic = match Mnemonic::from_phrase(phrase, Language::English) {
+    let _mnemonic = match Mnemonic::from_phrase(phrase, Language::English) {
         Ok(mnemonic) => mnemonic,
-        Err(e) => { panic!() }
+        Err(_) => { panic!() }
     };
 
     let bip39_seed = match get_bip39_seed_from_mnemonic(&phrase, "") {
         Ok(bip39_seed) => bip39_seed,
-        Err(e) => { panic!() }
+        Err(_) => { panic!() }
     };
 
     let (_, public_key) = match get_hardened_child_keypair(&bip39_seed, &[888, 0, 0]) {
         Ok(result) => result,
-        Err(e) => { panic!() }
+        Err(_) => { panic!() }
     };
 
     let address = match get_address_from_public_key(&public_key) {
         Ok(result) => result,
-        Err(e) => { panic!() }
+        Err(_) => { panic!() }
     };
 
     println!("Retrieving identities...");
@@ -84,7 +79,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 let mut input = String::new();
                 let mut identity_index = match io::stdin().read_line(&mut input) {
                     Ok(_) => input,
-                    Err(e) => { panic!() }
+                    Err(_) => { panic!() }
                 };
                 identity_index.pop();
                 let identity_index = identity_index.parse::<usize>().unwrap();
@@ -101,7 +96,6 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     };
 
     let user = users.get(&identity).unwrap();
-    let authorization_tokens: HashMap<String, String> = HashMap::new();
     let mut sync_engine = SyncEngine::new();
 
     for (app_domain, url) in user.profile.apps.iter() {
@@ -131,7 +125,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
         let (authorization_request_token, transit_secret_key) = match command.run() {
             Ok(token) => token,
-            Err(e) => panic!()
+            Err(_) => panic!()
         };
 
         // let challenge = "[\"gaiahub\",\"0\",\"hub\",\"blockstack_storage_please_sign\"]".to_string();
@@ -146,7 +140,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
         let authorization_token = match command.run() {
             Ok(token) => token,
-            Err(e) => panic!()
+            Err(_) => panic!()
         };
 
         let mut command = VerifyAuthorizationToken::new(
@@ -156,7 +150,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
         let app_secret_key = match command.run() {
             Ok(token) => token,
-            Err(e) => panic!()
+            Err(_) => panic!()
         };
 
         let command = CreateHubToken::new(
@@ -167,10 +161,10 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
         let hub_token = match command.run() {
             Ok(token) => token,
-            Err(e) => panic!()
+            Err(_) => panic!()
         };
 
-        let app_secret_key = 
+        let _app_secret_key = 
         sync_engine.register_endpoint(app_name, url.to_string(), hub_token).await;
     }
 

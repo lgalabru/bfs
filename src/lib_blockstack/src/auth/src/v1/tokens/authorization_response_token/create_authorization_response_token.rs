@@ -5,7 +5,6 @@ use crate::v1::{
         CreateAppKeypair,
         CreateAssociationToken,
     },
-    types::{AuthScope},
     helpers::{
         get_hardened_child_keypair,
         get_address_from_public_key
@@ -60,7 +59,7 @@ impl CreateAuthorizationToken {
 
         // Verify + Extract authorization request token
         let mut command = VerifyAuthorizationRequestToken::new(self.authorization_request_token.clone());
-        let (auth_request_header, auth_request_payload) = match command.run() {
+        let (_, auth_request_payload) = match command.run() {
             Ok(res) => res,
             Err(_) => return Err(Error::PayloadDataCorrupted) // todo(ludo): Add specific error
         };
@@ -103,7 +102,7 @@ impl CreateAuthorizationToken {
 
         // Encrypt app private key with transit key
         let encrypted_app_sk = {
-            let mut command = EncryptContent::new(public_transit_key.clone(),
+            let command = EncryptContent::new(public_transit_key.clone(),
                                                   app_sk.clone());
             command.run()?
         };

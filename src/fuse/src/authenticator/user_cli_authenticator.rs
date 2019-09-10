@@ -1,10 +1,8 @@
 use async_trait::async_trait;
-use std::ffi::{CStr, CString};
 
-use std::thread;
-use std::io::{self, Read, Write, BufReader, BufRead};
+use std::io::{self};
 
-use bip39::{Mnemonic, Seed, Language};
+use bip39::{Mnemonic, Language};
 
 use blockstack::storage::{
     AuthenticationDelegate,
@@ -14,28 +12,17 @@ use blockstack::storage::{
 };
 use blockstack::auth::v1::{
     helpers::{
-        get_bip39_seed_from_mnemonic, 
-        get_hardened_child_keypair
+        get_bip39_seed_from_mnemonic,
     },
     tokens::{
-        CreateAppKeypair, 
         CreateAuthorizationToken,
         CreateAuthorizationRequestToken,
-    },
-    types::AuthScope
+    }
 };
 
-pub struct UserCliAuthenticator {
-    mnemonic: Option<String>
-}
+pub struct UserCliAuthenticator;
 
 impl UserCliAuthenticator {
-
-    pub fn new() -> Self {
-        Self {
-            mnemonic: None
-        }
-    }
 
     fn start_authorization_flow(&self) -> AuthenticationResult {
         
@@ -45,17 +32,17 @@ impl UserCliAuthenticator {
 
         let mut phrase = match io::stdin().read_line(&mut input) {
             Ok(_) => input,
-            Err(e) => { return Err(AuthenticationError::Unknown) }
+            Err(_) => { return Err(AuthenticationError::Unknown) }
         };
         phrase.pop();
-        let mnemonic = match Mnemonic::from_phrase(phrase.clone(), Language::English) {
+        let _mnemonic = match Mnemonic::from_phrase(phrase.clone(), Language::English) {
             Ok(mnemonic) => mnemonic,
-            Err(e) => { return Err(AuthenticationError::Unknown) }
+            Err(_) => { return Err(AuthenticationError::Unknown) }
         };
 
-        let mut bip39_seed = match get_bip39_seed_from_mnemonic(&phrase, "") {
+        let bip39_seed = match get_bip39_seed_from_mnemonic(&phrase, "") {
             Ok(bip39_seed) => bip39_seed,
-            Err(e) => { return Err(AuthenticationError::Unknown) }
+            Err(_) => { return Err(AuthenticationError::Unknown) }
         };
 
         let app_domain = "https://blackhole.run";
@@ -70,9 +57,9 @@ impl UserCliAuthenticator {
             true,     // todo(ludo): fill
         );
 
-        let (authorization_request_token, transit_secret_key) = match command.run() {
+        let (authorization_request_token, _transit_secret_key) = match command.run() {
             Ok(token) => token,
-            Err(e) => { return Err(AuthenticationError::Unknown) }
+            Err(_) => { return Err(AuthenticationError::Unknown) }
         };
 
         let command = CreateAuthorizationToken::new(
@@ -85,7 +72,7 @@ impl UserCliAuthenticator {
 
         let authorization_token = match command.run() {
             Ok(token) => token,
-            Err(e) => { return Err(AuthenticationError::Unknown) }
+            Err(_) => { return Err(AuthenticationError::Unknown) }
         };
 
         Ok(AuthenticationToken::new(&authorization_token))
@@ -95,12 +82,7 @@ impl UserCliAuthenticator {
 #[async_trait]
 impl AuthenticationDelegate for UserCliAuthenticator {
 
-    async fn get_authorization_token(&self) -> AuthenticationResult {
-        // Handshake has already been perfomed
-        if let Some(mnemonic) = &self.mnemonic {
-            // return Ok(AuthenticationToken::new(&app_private_key))
-        }
-        
+    async fn get_authorization_token(&self) -> AuthenticationResult {        
         // Start authorization flow 
         let result = self.start_authorization_flow();
         if let Err(err) = result {

@@ -9,8 +9,6 @@ use crate::v1::{
 use super::authorization_request_claims::Payload;
 use secp256k1::{
     Secp256k1, 
-    SecretKey, 
-    PublicKey,
     Message,
     rand::OsRng,
 };

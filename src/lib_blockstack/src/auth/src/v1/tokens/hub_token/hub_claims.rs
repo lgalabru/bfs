@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use rand::{Rng, thread_rng};
 use hex;
 use uuid::Uuid;
 use crate::v1::tokens::jwt::{Salt};

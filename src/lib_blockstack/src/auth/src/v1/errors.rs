@@ -10,9 +10,8 @@ pub enum Error {
     PayloadDataCorrupted,
     PrincipalMissing,
     SignatureEncodingCorrupted,
-    ///
     SecretKeyCorrupted,
     PublicKeyCorrupted,
-    KeyDerivationFailed
+    KeyDerivationFailed,
 }
 

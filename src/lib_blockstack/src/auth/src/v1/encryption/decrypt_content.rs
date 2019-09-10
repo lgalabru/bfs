@@ -8,7 +8,7 @@ use secp256k1::{
     PublicKey,
     ecdh::SharedSecret
 };
-use ring::hmac::{Context, Key, HMAC_SHA256};
+// use ring::hmac::{Context, Key, HMAC_SHA256};
 use sha2::{Sha512, Digest};
 use block_modes::{
     block_padding::Pkcs7,

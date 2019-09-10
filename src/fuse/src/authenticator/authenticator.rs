@@ -2,14 +2,8 @@ use async_trait::async_trait;
 use blockstack::storage::{
     AuthenticationDelegate,
     AuthenticationResult,
-    AuthenticationError,
     AuthenticationToken
 };
-
-#[derive(Debug)]
-pub enum Error {
-    Unknown,
-}
 
 pub struct Authenticator {
     pub authentication_token: String

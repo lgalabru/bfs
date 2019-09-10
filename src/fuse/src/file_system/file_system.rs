@@ -1,17 +1,13 @@
 extern crate env_logger;
-use std::ffi::{OsStr, OsString};
+use std::ffi::{OsStr};
 use libc::ENOENT;
 use time::Timespec;
 use fuse::{FileType, FileAttr, Request, ReplyData, ReplyEntry, ReplyEmpty, ReplyOpen, ReplyAttr, ReplyDirectory};
 use crate::file_system::{SyncEngine};
 
-use blockstack::types::{
-    file::{
-        File, 
-        ListFilesResult
-    },
-    errors::Error
-};
+// use blockstack::types::{
+//     errors::Error
+// };
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };                     // 1 second
 const CREATE_TIME: Timespec = Timespec { sec: 1381237736, nsec: 0 };    // 2013-10-08 08:56
@@ -54,12 +50,12 @@ impl fuse::Filesystem for FS {
     // }
 
     /// Open a directory.
-    fn opendir(&mut self, _req: &Request, ino: u64, _flags: u32, reply: ReplyOpen) {
+    fn opendir(&mut self, _req: &Request, _ino: u64, _flags: u32, reply: ReplyOpen) {
         reply.opened(1, 0);
     }
 
     /// Read directory.
-    fn readdir(&mut self, req: &Request, ino: u64, fh: u64, offset: i64, mut reply: ReplyDirectory) {
+    fn readdir(&mut self, _req: &Request, ino: u64, _fh: u64, offset: i64, mut reply: ReplyDirectory) {
 
         if ino < 1 {
             reply.error(ENOENT);
@@ -90,12 +86,12 @@ impl fuse::Filesystem for FS {
     }
 
     /// Release an open directory.
-    fn releasedir(&mut self, _req: &Request, ino: u64, _fh: u64, _flags: u32, reply: ReplyEmpty) {
+    fn releasedir(&mut self, _req: &Request, _ino: u64, _fh: u64, _flags: u32, reply: ReplyEmpty) {
         reply.ok();
     }
 
     /// Look up a directory entry by name and get its attributes.
-    fn lookup(&mut self, req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
+    fn lookup(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
         if parent < 1 {
             reply.error(ENOENT);
             return
@@ -122,7 +118,7 @@ impl fuse::Filesystem for FS {
         reply.entry(&TTL, &attrs, 0);
     }
 
-    fn getattr(&mut self, req: &Request, ino: u64, reply: ReplyAttr) {
+    fn getattr(&mut self, _req: &Request, ino: u64, reply: ReplyAttr) {
 
         match ino {
             1 => reply.attr(&TTL, &BFS_DIR_ATTR),

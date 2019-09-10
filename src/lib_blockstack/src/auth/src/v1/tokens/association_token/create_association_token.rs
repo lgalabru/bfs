@@ -1,7 +1,6 @@
 use secp256k1::{Secp256k1, Message, SecretKey};
 use sha2::{Sha256, Digest};
 use base64;
-use hex;
 use crate::v1::errors::Error;
 use crate::v1::tokens::jwt::{Header};
 use super::association_claims::Payload;
