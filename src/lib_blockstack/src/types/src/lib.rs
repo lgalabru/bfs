@@ -1,6 +1,6 @@
-pub mod file;
-pub mod errors;
 pub mod driver;
+pub mod errors;
+pub mod file;
 
 #[cfg(test)]
 mod tests {

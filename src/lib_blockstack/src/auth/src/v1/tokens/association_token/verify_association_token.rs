@@ -1,14 +1,11 @@
-use serde_json;
-use sha2::{Sha256, Digest};
 use base64;
-use secp256k1::{Secp256k1, Message, Signature, PublicKey};
 use hex;
+use secp256k1::{Message, PublicKey, Secp256k1, Signature};
+use serde_json;
+use sha2::{Digest, Sha256};
 
-use crate::v1::{
-    tokens::jwt::Header,
-    errors::Error
-};
 use super::association_claims::Payload;
+use crate::v1::{errors::Error, tokens::jwt::Header};
 
 pub struct VerifyAssociationToken {
     // todo(ludo): add description
@@ -16,11 +13,8 @@ pub struct VerifyAssociationToken {
 }
 
 impl VerifyAssociationToken {
-
     pub fn new(token: String) -> Self {
-        Self {
-            token
-        }
+        Self { token }
     }
 
     pub fn run(&mut self) -> Result<(Header, Payload), Error> {
@@ -74,7 +68,7 @@ impl VerifyAssociationToken {
 
         let public_key = match payload.iss {
             Some(ref public_key) => hex::decode(&public_key).unwrap(),
-            None => return Err(Error::PayloadDataCorrupted) // todo(ludo): custom error
+            None => return Err(Error::PayloadDataCorrupted), // todo(ludo): custom error
         };
 
         // Check Signature
@@ -87,7 +81,7 @@ impl VerifyAssociationToken {
             let compact_sig = w_url_safe_b64_decode.unwrap();
 
             let signing_input = format!("{}.{}", jwt_parts[0], jwt_parts[1]);
-            
+
             // SHA256
             let mut sha2 = Sha256::new();
             sha2.input(signing_input.clone());
@@ -96,9 +90,12 @@ impl VerifyAssociationToken {
             // Verify signature
             let secp = Secp256k1::verification_only();
 
-            let public_key = PublicKey::from_slice(&public_key).expect("public keys must be 33 or 65 bytes, serialized according to SEC 2");
-            let message = Message::from_slice(&signing_input_hashed).expect("messages must be 32 bytes and are expected to be hashes");
-            let sig = Signature::from_compact(&compact_sig).expect("compact signatures are 64 bytes;");
+            let public_key = PublicKey::from_slice(&public_key)
+                .expect("public keys must be 33 or 65 bytes, serialized according to SEC 2");
+            let message = Message::from_slice(&signing_input_hashed)
+                .expect("messages must be 32 bytes and are expected to be hashes");
+            let sig =
+                Signature::from_compact(&compact_sig).expect("compact signatures are 64 bytes;");
             secp.verify(&message, &sig, &public_key)
         };
 

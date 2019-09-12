@@ -1,7 +1,4 @@
-use crate::v1::{
-    errors::Error,
-    tokens::VerifyAuthorizationToken
-};
+use crate::v1::{errors::Error, tokens::VerifyAuthorizationToken};
 
 #[test]
 fn should_fail_when_prefix_other_than_v1() {

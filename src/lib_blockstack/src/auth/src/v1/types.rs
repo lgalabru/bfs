@@ -31,13 +31,19 @@ pub struct EncryptedPayload {
 }
 
 impl EncryptedPayload {
-    pub fn new(iv: String, ephemeral_pk: String, cipher_text: String, mac: String, was_string: String) -> Self {
+    pub fn new(
+        iv: String,
+        ephemeral_pk: String,
+        cipher_text: String,
+        mac: String,
+        was_string: String,
+    ) -> Self {
         Self {
             iv: Some(iv),
             ephemeral_pk: Some(ephemeral_pk),
             cipher_text: Some(cipher_text),
             mac: Some(mac),
-            was_string: Some(was_string)
+            was_string: Some(was_string),
         }
     }
 }

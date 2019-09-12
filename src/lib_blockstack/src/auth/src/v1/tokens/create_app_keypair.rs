@@ -1,14 +1,11 @@
 use crate::v1::{
     errors::Error,
-    helpers::{
-        get_master_node_from_bip39_seed,
-        get_hardened_derivation
-    }
+    helpers::{get_hardened_derivation, get_master_node_from_bip39_seed},
 };
-use secp256k1::{Secp256k1, SecretKey, PublicKey};
-use sha2::{Sha256, Digest};
-use ripemd160::Ripemd160;
 use hex;
+use ripemd160::Ripemd160;
+use secp256k1::{PublicKey, Secp256k1, SecretKey};
+use sha2::{Digest, Sha256};
 
 pub struct CreateAppKeypair {
     /// User secret seed - BIP39.
@@ -22,7 +19,6 @@ pub struct CreateAppKeypair {
 }
 
 impl CreateAppKeypair {
-
     pub fn new(user_bip39_seed: Vec<u8>, app_domain: String) -> Self {
         Self {
             user_bip39_seed,
@@ -34,20 +30,21 @@ impl CreateAppKeypair {
 
     // todo(ludo): comment all the public methods
     pub fn run(&mut self) -> Result<(Vec<u8>, String, String), Error> {
-
-        let (master_node_bytes, chain_code) = get_master_node_from_bip39_seed(&self.user_bip39_seed);
+        let (master_node_bytes, chain_code) =
+            get_master_node_from_bip39_seed(&self.user_bip39_seed);
         let master_node = SecretKey::from_slice(&master_node_bytes).unwrap();
 
-        // Derive the idendity node #i: m/888'/0'. 
+        // Derive the idendity node #i: m/888'/0'.
         // Question: shouldn't we include {identity_address_index}?
-        let (identity_node, identity_cc) = get_hardened_derivation(master_node, &chain_code, &[888, 0])?;
+        let (identity_node, identity_cc) =
+            get_hardened_derivation(master_node, &chain_code, &[888, 0])?;
 
         // Compute a salt from this node by hashing its public key
         let salt = {
             let secp = Secp256k1::new();
             let pk = PublicKey::from_secret_key(&secp, &identity_node);
-            let public_key = hex::encode(&pk.serialize().to_vec());        
-            
+            let public_key = hex::encode(&pk.serialize().to_vec());
+
             let mut sha2 = Sha256::new();
             sha2.input(public_key.clone());
             let public_key_hashed = sha2.result();
@@ -62,7 +59,7 @@ impl CreateAppKeypair {
             hex::encode(&public_key_hashed.to_vec())
         };
 
-        // Compute the app index. 
+        // Compute the app index.
         // Tedious: we need to reproduce the underflows / overflows
         // of the javascript's implementation.
         let app_index = {
@@ -78,7 +75,7 @@ impl CreateAppKeypair {
         // Derive the app node: m/888'/0'/{identity_index}'/{apps_node}'/{app_index}'
         let sub_path = [self.identity_address_index, self.apps_hdn_index, app_index];
         let (app_node, _) = get_hardened_derivation(identity_node, &identity_cc, &sub_path)?;
-        
+
         let public_key = {
             let secp = Secp256k1::new();
             let pk = PublicKey::from_secret_key(&secp, &app_node);
@@ -100,7 +97,7 @@ impl CreateAppKeypair {
             // Prepend version byte
             let version_byte = [0]; // MAINNET_SINGLESIG
             let v_pub_key_h160 = [&version_byte[..], &pub_key_h160[..]].concat();
-            
+
             // Append checksum
             let mut sha2_1 = Sha256::new();
             sha2_1.input(v_pub_key_h160.clone());
@@ -108,7 +105,7 @@ impl CreateAppKeypair {
             sha2_2.input(sha2_1.result().as_slice());
             let checksum = sha2_2.result();
             let v_pub_key_h160_checksumed = [&v_pub_key_h160[..], &checksum[0..4]].concat();
-            
+
             // Base58 encode
             bs58::encode(v_pub_key_h160_checksumed).into_string()
         };

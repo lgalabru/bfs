@@ -1,7 +1,7 @@
 use crate::v1::{
-    tests::get_hardened_m_0,
+    encryption::{DecryptContent, EncryptContent},
     errors::Error,
-    encryption::{EncryptContent, DecryptContent}
+    tests::get_hardened_m_0,
 };
 
 #[test]

@@ -1,16 +1,22 @@
 extern crate env_logger;
-use std::ffi::{OsStr};
+use crate::file_system::SyncEngine;
+use fuse::{
+    FileAttr, FileType, ReplyAttr, ReplyData, ReplyDirectory, ReplyEmpty, ReplyEntry, ReplyOpen,
+    Request,
+};
 use libc::ENOENT;
+use std::ffi::OsStr;
 use time::Timespec;
-use fuse::{FileType, FileAttr, Request, ReplyData, ReplyEntry, ReplyEmpty, ReplyOpen, ReplyAttr, ReplyDirectory};
-use crate::file_system::{SyncEngine};
 
 // use blockstack::types::{
 //     errors::Error
 // };
 
-const TTL: Timespec = Timespec { sec: 1, nsec: 0 };                     // 1 second
-const CREATE_TIME: Timespec = Timespec { sec: 1381237736, nsec: 0 };    // 2013-10-08 08:56
+const TTL: Timespec = Timespec { sec: 1, nsec: 0 }; // 1 second
+const CREATE_TIME: Timespec = Timespec {
+    sec: 1381237736,
+    nsec: 0,
+}; // 2013-10-08 08:56
 
 const BFS_DIR_ATTR: FileAttr = FileAttr {
     ino: 1,
@@ -32,20 +38,16 @@ const BFS_DIR_ATTR: FileAttr = FileAttr {
 const TEMP_CONTENT: &'static str = "Hello World!\n";
 
 pub struct FS {
-    sync_engine: SyncEngine
+    sync_engine: SyncEngine,
 }
 
 impl FS {
-
     pub fn new(sync_engine: SyncEngine) -> Self {
-        Self {
-            sync_engine
-        }
+        Self { sync_engine }
     }
 }
 
 impl fuse::Filesystem for FS {
-
     // fn init(&mut self, _req: &Request) -> Result<(), c_int> {
     // }
 
@@ -55,8 +57,14 @@ impl fuse::Filesystem for FS {
     }
 
     /// Read directory.
-    fn readdir(&mut self, _req: &Request, ino: u64, _fh: u64, offset: i64, mut reply: ReplyDirectory) {
-
+    fn readdir(
+        &mut self,
+        _req: &Request,
+        ino: u64,
+        _fh: u64,
+        offset: i64,
+        mut reply: ReplyDirectory,
+    ) {
         if ino < 1 {
             reply.error(ENOENT);
             return;
@@ -65,9 +73,9 @@ impl fuse::Filesystem for FS {
         let mut curr_offs = offset + 1;
         match self.sync_engine.file_map.directory_entries.get(&ino) {
             Some(entries) => {
-                for file_ino in entries.iter().skip(offset as usize) {                    
+                for file_ino in entries.iter().skip(offset as usize) {
                     if let Some((name, attrs)) = self.sync_engine.file_map.files.get(file_ino) {
-                        if reply.add(*file_ino, curr_offs, attrs.kind , &name.clone()) {
+                        if reply.add(*file_ino, curr_offs, attrs.kind, &name.clone()) {
                             break;
                         } else {
                             curr_offs += 1;
@@ -94,7 +102,7 @@ impl fuse::Filesystem for FS {
     fn lookup(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
         if parent < 1 {
             reply.error(ENOENT);
-            return
+            return;
         }
 
         let key = (parent, name.to_os_string());
@@ -103,7 +111,7 @@ impl fuse::Filesystem for FS {
             Some(ino) => ino,
             None => {
                 reply.error(ENOENT);
-                return
+                return;
             }
         };
 
@@ -111,15 +119,14 @@ impl fuse::Filesystem for FS {
             Some(res) => res,
             None => {
                 reply.error(ENOENT);
-                return
+                return;
             }
-        }; 
+        };
 
         reply.entry(&TTL, &attrs, 0);
     }
 
     fn getattr(&mut self, _req: &Request, ino: u64, reply: ReplyAttr) {
-
         match ino {
             1 => reply.attr(&TTL, &BFS_DIR_ATTR),
             _ => {
@@ -127,13 +134,21 @@ impl fuse::Filesystem for FS {
                     reply.attr(&TTL, &attrs);
                 } else {
                     reply.error(ENOENT);
-                    return
+                    return;
                 }
             }
         }
     }
 
-    fn read(&mut self, _req: &Request, ino: u64, _fh: u64, offset: i64, _size: u32, reply: ReplyData) {
+    fn read(
+        &mut self,
+        _req: &Request,
+        ino: u64,
+        _fh: u64,
+        offset: i64,
+        _size: u32,
+        reply: ReplyData,
+    ) {
         if ino == 2 {
             reply.data(&TEMP_CONTENT.as_bytes()[offset as usize..]);
         } else {

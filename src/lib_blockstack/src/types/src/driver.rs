@@ -1,30 +1,23 @@
-use std::ffi::OsString;
 use super::{
+    errors::Error,
     file::{
-        File,
-        TearUpResult,
-        TearDownResult,
-        ListFilesResult,
-        CreateFileResult,
-        ReadFileResult,
-        UpdateFileResult,
-        DeleteFileResult
+        CreateFileResult, DeleteFileResult, File, ListFilesResult, ReadFileResult, TearDownResult,
+        TearUpResult, UpdateFileResult,
     },
-    errors::Error
 };
+use std::ffi::OsString;
 
 #[derive(Debug)]
 pub struct TearUpParams;
 
 #[derive(Debug)]
-pub struct TearDownParams {
-}
+pub struct TearDownParams {}
 
 #[derive(Debug)]
 pub struct ListFilesParams {
-    pub path: OsString, 
+    pub path: OsString,
 
-    pub page: Option<u32>
+    pub page: Option<u32>,
 }
 
 #[derive(Debug)]
@@ -39,26 +32,25 @@ pub struct CreateFileParams {
 
     pub content_type: String,
 
-    pub content_length: i64
+    pub content_length: i64,
 }
 
 #[derive(Debug)]
 pub struct ReadFileParams {
-    pub file: File
+    pub file: File,
 }
 
 #[derive(Debug)]
 pub struct UpdateFileParams {
-    pub file: File
+    pub file: File,
 }
 
 #[derive(Debug)]
 pub struct DeleteFileParams {
-    pub file: File
+    pub file: File,
 }
 
 pub trait StorageDriver {
-    
     fn tear_up(params: TearUpParams) -> Result<TearUpResult, Error>;
 
     fn tear_down(params: TearDownParams) -> Result<TearDownResult, Error>;

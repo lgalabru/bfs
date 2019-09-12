@@ -1,10 +1,10 @@
-use secp256k1::{Secp256k1, Message, SecretKey, PublicKey};
-use sha2::{Sha256, Digest};
-use base64;
-use hex;
+use super::hub_claims::Payload;
 use crate::v1::errors::Error;
 use crate::v1::tokens::jwt::Header;
-use super::hub_claims::Payload;
+use base64;
+use hex;
+use secp256k1::{Message, PublicKey, Secp256k1, SecretKey};
+use sha2::{Digest, Sha256};
 
 pub struct CreateHubToken {
     /// App secret key
@@ -16,28 +16,29 @@ pub struct CreateHubToken {
 }
 
 impl CreateHubToken {
-
     pub fn new(app_secret_key: Vec<u8>, gaia_challenge: String, hub_url: String) -> Self {
         Self {
             app_secret_key,
             hub_url,
-            gaia_challenge
+            gaia_challenge,
         }
     }
 
     pub fn run(&self) -> Result<String, Error> {
-
         let secp = Secp256k1::new();
-        let secret_key = SecretKey::from_slice(&self.app_secret_key).expect("32 bytes, within curve order");;
+        let secret_key =
+            SecretKey::from_slice(&self.app_secret_key).expect("32 bytes, within curve order");;
         let public_key = PublicKey::from_secret_key(&secp, &secret_key);
-        let public_key_hex = hex::encode(&public_key.serialize().to_vec());        
+        let public_key_hex = hex::encode(&public_key.serialize().to_vec());
 
         // Build AssociationPayload
         let payload = {
             // todo(ludo): remove this clones
-            let payload = Payload::new(public_key_hex, 
-                                       self.hub_url.clone(),
-                                       self.gaia_challenge.clone());
+            let payload = Payload::new(
+                public_key_hex,
+                self.hub_url.clone(),
+                self.gaia_challenge.clone(),
+            );
             let w_payload_json = serde_json::to_string(&payload);
             if w_payload_json.is_err() {
                 // Unable to serialize JWT's payload

@@ -1,6 +1,6 @@
+use crate::v1::tokens::jwt::Salt;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::v1::tokens::jwt::{Salt};
 
 /// JWT Claims Set for "Association tokens"
 #[derive(Serialize, Deserialize)]
@@ -24,9 +24,7 @@ pub struct Payload {
 }
 
 impl Payload {
-
     pub fn new(app_public_key: String, hub_url: String, gaia_challenge: String) -> Self {
-        
         // Generate UUID
         let uuid = Uuid::new_v4().to_string();
 
@@ -45,7 +43,7 @@ impl Payload {
             iss: Some(app_public_key),
             salt: None,
             hub_url: Some(hub_url),
-            gaia_challenge: Some(gaia_challenge)
+            gaia_challenge: Some(gaia_challenge),
         }
     }
 }

@@ -1,9 +1,7 @@
 use hex;
 
 use crate::v1::errors::Error;
-use crate::v1::helpers::{
-    get_hardened_child_keypair
-};
+use crate::v1::helpers::get_hardened_child_keypair;
 use secp256k1::{Secp256k1, SecretKey};
 
 pub fn get_hardened_m_0(bip39_seed: &str) -> Result<(Vec<u8>, String), Error> {

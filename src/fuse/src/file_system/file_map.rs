@@ -1,9 +1,12 @@
+use fuse::{FileAttr, FileType};
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
-use fuse::{FileType, FileAttr};
 use time::Timespec;
 
-const CREATE_TIME: Timespec = Timespec { sec: 1381237736, nsec: 0 };
+const CREATE_TIME: Timespec = Timespec {
+    sec: 1381237736,
+    nsec: 0,
+};
 
 pub struct FileMap {
     /// Auto-increment - next inode
@@ -13,7 +16,7 @@ pub struct FileMap {
     /// Keep track of direto
     pub directory_entries: HashMap<u64, Vec<u64>>,
     /// Lookup (parent, name) -> ino
-    pub lookup: HashMap<(u64, OsString), u64>
+    pub lookup: HashMap<(u64, OsString), u64>,
 }
 
 impl FileMap {
@@ -22,27 +25,25 @@ impl FileMap {
             next_inode: 1,
             files: HashMap::new(),
             directory_entries: HashMap::new(),
-            lookup: HashMap::new()
+            lookup: HashMap::new(),
         };
         file_map.insert_root();
         file_map
     }
 
     pub fn insert_root(&mut self) {
-
         let root_attr = self.new_file(FileType::Directory);
         let ino = root_attr.ino;
-        
+
         self.files.insert(ino, (OsString::from(""), root_attr));
 
         self.directory_entries.insert(ino, Vec::new());
     }
 
     pub fn register_regular_file(&mut self, parent: u64, name: &OsStr) -> FileAttr {
-
         let file_attr = self.new_file(FileType::RegularFile);
         let ino = file_attr.ino;
-        
+
         self.files.insert(ino, (name.to_os_string(), file_attr));
 
         let siblings = self.directory_entries.get_mut(&parent).unwrap();
@@ -54,7 +55,6 @@ impl FileMap {
     }
 
     pub fn register_directory(&mut self, parent: u64, name: &OsStr) -> FileAttr {
-
         if let Some(ino) = self.lookup.get(&(parent, name.to_os_string())) {
             let (_, file_attr) = self.files.get(ino).unwrap();
             return *file_attr;
@@ -62,7 +62,7 @@ impl FileMap {
 
         let file_attr = self.new_file(FileType::Directory);
         let ino = file_attr.ino;
-        
+
         self.files.insert(ino, (name.to_os_string(), file_attr));
 
         self.directory_entries.insert(ino, Vec::new());

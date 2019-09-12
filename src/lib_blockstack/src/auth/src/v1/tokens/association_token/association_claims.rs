@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
-use rand::{Rng, thread_rng};
 use hex;
+use rand::{thread_rng, Rng};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// JWT Claims Set for "Association tokens"
@@ -18,13 +18,11 @@ pub struct Payload {
     pub salt: Option<String>,
     /// App public key to associate
     #[serde(rename = "childToAssociate")]
-    pub child_to_associate: Option<String>
+    pub child_to_associate: Option<String>,
 }
 
 impl Payload {
-
     pub fn new(user_public_key: String, app_public_key: String) -> Self {
-        
         // Generate UUID
         let uuid = Uuid::new_v4().to_string();
 
@@ -42,7 +40,7 @@ impl Payload {
             exp: Some(0),
             iss: Some(user_public_key),
             child_to_associate: Some(app_public_key),
-            salt: Some(salt_hex)
+            salt: Some(salt_hex),
         }
     }
 }

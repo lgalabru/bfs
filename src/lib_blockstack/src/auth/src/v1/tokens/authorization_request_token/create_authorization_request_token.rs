@@ -1,19 +1,10 @@
-use crate::v1::{
-    tokens::jwt:: {
-        Header
-    },
-    types::{AuthScope},
-    errors::Error,
-    helpers::get_address_from_public_key
-};
 use super::authorization_request_claims::Payload;
-use secp256k1::{
-    Secp256k1, 
-    Message,
-    rand::OsRng,
+use crate::v1::{
+    errors::Error, helpers::get_address_from_public_key, tokens::jwt::Header, types::AuthScope,
 };
+use secp256k1::{rand::OsRng, Message, Secp256k1};
 
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 
 pub struct CreateAuthorizationRequestToken {
     // Blockstack apps are uniquely identified by their app domain
@@ -33,14 +24,15 @@ pub struct CreateAuthorizationRequestToken {
 }
 
 impl CreateAuthorizationRequestToken {
-
-    pub fn new(app_domain: String, 
-               manifest_uri: String,
-               redirect_uri: String,
-               version: String,
-               scopes: Vec<AuthScope>,
-               do_not_include_profile: bool,
-               supports_hub_url: bool) -> Self {
+    pub fn new(
+        app_domain: String,
+        manifest_uri: String,
+        redirect_uri: String,
+        version: String,
+        scopes: Vec<AuthScope>,
+        do_not_include_profile: bool,
+        supports_hub_url: bool,
+    ) -> Self {
         Self {
             app_domain,
             manifest_uri,
@@ -48,12 +40,11 @@ impl CreateAuthorizationRequestToken {
             version,
             scopes,
             do_not_include_profile,
-            supports_hub_url
+            supports_hub_url,
         }
     }
 
     pub fn run(&self) -> Result<(String, Vec<u8>), Error> {
-
         let (transit_sk, transit_pk) = {
             let secp = Secp256k1::new();
             let mut rng = OsRng::new().expect("OsRng");
@@ -65,7 +56,7 @@ impl CreateAuthorizationRequestToken {
         let payload = {
             let address = match get_address_from_public_key(&transit_pk_hex) {
                 Ok(address) => address,
-                Err(_) => return Err(Error::PayloadDataCorrupted) // todo(ludo): add error
+                Err(_) => return Err(Error::PayloadDataCorrupted), // todo(ludo): add error
             };
 
             let payload = Payload::new(
@@ -77,7 +68,7 @@ impl CreateAuthorizationRequestToken {
                 self.version.clone(),
                 self.scopes.clone(),
                 self.supports_hub_url,
-                vec![transit_pk_hex]
+                vec![transit_pk_hex],
             );
             let w_payload_json = serde_json::to_string(&payload);
             if w_payload_json.is_err() {

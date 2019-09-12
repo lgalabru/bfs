@@ -1,9 +1,9 @@
-use secp256k1::{Secp256k1, Message, SecretKey};
-use sha2::{Sha256, Digest};
-use base64;
-use crate::v1::errors::Error;
-use crate::v1::tokens::jwt::{Header};
 use super::association_claims::Payload;
+use crate::v1::errors::Error;
+use crate::v1::tokens::jwt::Header;
+use base64;
+use secp256k1::{Message, Secp256k1, SecretKey};
+use sha2::{Digest, Sha256};
 
 pub struct CreateAssociationToken {
     /// User secret key
@@ -15,22 +15,19 @@ pub struct CreateAssociationToken {
 }
 
 impl CreateAssociationToken {
-
     pub fn new(user_secret_key: Vec<u8>, user_public_key: String, app_public_key: String) -> Self {
         Self {
             user_secret_key,
             user_public_key,
-            app_public_key
+            app_public_key,
         }
     }
 
     pub fn run(&self) -> Result<String, Error> {
-
         // Build AssociationPayload
         let payload = {
             // todo(ludo): remove this clones
-            let payload = Payload::new(self.user_public_key.clone(), 
-                                       self.app_public_key.clone());
+            let payload = Payload::new(self.user_public_key.clone(), self.app_public_key.clone());
             let w_payload_json = serde_json::to_string(&payload);
             if w_payload_json.is_err() {
                 // Unable to serialize JWT's payload
@@ -62,7 +59,8 @@ impl CreateAssociationToken {
             let signing_input_hashed = sha2.result();
 
             let secp = Secp256k1::signing_only();
-            let sk = SecretKey::from_slice(&self.user_secret_key).expect("32 bytes, within curve order");
+            let sk =
+                SecretKey::from_slice(&self.user_secret_key).expect("32 bytes, within curve order");
             let message = Message::from_slice(&signing_input_hashed).expect("32 bytes");
             let sig = secp.sign(&message, &sk);
             let sig_serialized = sig.serialize_compact().to_vec();

@@ -1,9 +1,9 @@
-use serde::{Deserialize, Serialize};
-use rand::{Rng, thread_rng};
-use hex;
-use uuid::Uuid;
+use crate::v1::tokens::jwt::Salt;
 use crate::v1::types::{AuthScope, EncryptedPayload};
-use crate::v1::tokens::jwt::{Salt};
+use hex;
+use rand::{thread_rng, Rng};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// JWT Claims Set for "Authorization tokens"
 #[derive(Serialize, Deserialize)]
@@ -38,12 +38,12 @@ pub struct Payload {
 }
 
 impl Payload {
-
-    pub fn new(address: String, 
-               association_token: String, 
-               app_secret_key: EncryptedPayload,
-               app_public_keys: Vec<String>) -> Self {
-
+    pub fn new(
+        address: String,
+        association_token: String,
+        app_secret_key: EncryptedPayload,
+        app_public_keys: Vec<String>,
+    ) -> Self {
         // Generate UUID
         let uuid = Uuid::new_v4().to_string();
 
@@ -69,7 +69,7 @@ impl Payload {
             hub_url: None,
             association_token: Some(association_token),
             private_key: Some(app_secret_key),
-            public_keys: Some(app_public_keys)
+            public_keys: Some(app_public_keys),
         }
     }
 }

@@ -1,27 +1,16 @@
-use crate::v1::{
-    tokens::{
-        jwt::Header,
-        VerifyAuthorizationRequestToken,
-        CreateAppKeypair,
-        CreateAssociationToken,
-    },
-    helpers::{
-        get_hardened_child_keypair,
-        get_address_from_public_key
-    },
-    errors::Error,
-    // Commands
-    encryption::EncryptContent
-};
 use super::authorization_claims::Payload;
-
-use secp256k1::{
-    Secp256k1, 
-    SecretKey, 
-    Message,
+use crate::v1::{
+    // Commands
+    encryption::EncryptContent,
+    errors::Error,
+    helpers::{get_address_from_public_key, get_hardened_child_keypair},
+    tokens::{
+        jwt::Header, CreateAppKeypair, CreateAssociationToken, VerifyAuthorizationRequestToken,
+    },
 };
-use sha2::{Sha256, Digest};
 
+use secp256k1::{Message, Secp256k1, SecretKey};
+use sha2::{Digest, Sha256};
 
 // todo(ludo): re-export commands in mod.rs
 
@@ -36,44 +25,43 @@ pub struct CreateAuthorizationToken {
     // URL to the write path of the user's Gaia hub
     hub_url: String,
     // Identity to use
-    identidy_index: u32
+    identidy_index: u32,
 }
 
 impl CreateAuthorizationToken {
-
-    pub fn new(user_bip39_seed: Vec<u8>,
-               authorization_request_token: String,
-               gaia_challenge: String,
-               hub_url: String,
-               identidy_index: u32) -> Self {
+    pub fn new(
+        user_bip39_seed: Vec<u8>,
+        authorization_request_token: String,
+        gaia_challenge: String,
+        hub_url: String,
+        identidy_index: u32,
+    ) -> Self {
         Self {
             user_bip39_seed,
             authorization_request_token,
             gaia_challenge,
             hub_url,
-            identidy_index
+            identidy_index,
         }
     }
 
     pub fn run(&self) -> Result<String, Error> {
-
         // Verify + Extract authorization request token
-        let mut command = VerifyAuthorizationRequestToken::new(self.authorization_request_token.clone());
+        let mut command =
+            VerifyAuthorizationRequestToken::new(self.authorization_request_token.clone());
         let (_, auth_request_payload) = match command.run() {
             Ok(res) => res,
-            Err(_) => return Err(Error::PayloadDataCorrupted) // todo(ludo): Add specific error
+            Err(_) => return Err(Error::PayloadDataCorrupted), // todo(ludo): Add specific error
         };
 
         let public_transit_key = match auth_request_payload.public_keys {
-            Some(public_keys) => {
-                hex::decode(&public_keys[0]).unwrap()               
-            },
-            None => return Err(Error::PayloadDataCorrupted) // todo(ludo): Add specific error
+            Some(public_keys) => hex::decode(&public_keys[0]).unwrap(),
+            None => return Err(Error::PayloadDataCorrupted), // todo(ludo): Add specific error
         };
 
         let app_domain = match auth_request_payload.app_domain {
             Some(app_domain) => app_domain,
-            None => return Err(Error::PayloadDataCorrupted) // todo(ludo): Add specific error
+            None => return Err(Error::PayloadDataCorrupted), // todo(ludo): Add specific error
         };
 
         // Get user keypair
@@ -86,36 +74,32 @@ impl CreateAuthorizationToken {
         // Create an app keypair
         let (app_sk, app_pk, _app_address) = {
             // todo(ludo): remove clones
-            let mut command = CreateAppKeypair::new(self.user_bip39_seed.clone(), 
-                                                    app_domain.clone());
+            let mut command =
+                CreateAppKeypair::new(self.user_bip39_seed.clone(), app_domain.clone());
             command.run()?
         };
 
         // Create association token
         let association_token = {
             // todo(ludo): remove clones
-            let command = CreateAssociationToken::new(user_secret_key.clone(),
-                                                      user_public_key.clone(),
-                                                      app_pk.clone());
+            let command = CreateAssociationToken::new(
+                user_secret_key.clone(),
+                user_public_key.clone(),
+                app_pk.clone(),
+            );
             command.run()?
         };
 
         // Encrypt app private key with transit key
         let encrypted_app_sk = {
-            let command = EncryptContent::new(public_transit_key.clone(),
-                                                  app_sk.clone());
+            let command = EncryptContent::new(public_transit_key.clone(), app_sk.clone());
             command.run()?
         };
 
         // Build payload based on authorization claims
         let payload = {
             let address = get_address_from_public_key(&user_public_key).unwrap(); // todo(ludo): handle unwrap()
-            let payload = Payload::new(
-                address,
-                association_token,
-                encrypted_app_sk,
-                vec![app_pk]
-            );
+            let payload = Payload::new(address, association_token, encrypted_app_sk, vec![app_pk]);
             let w_payload_json = serde_json::to_string(&payload);
             if w_payload_json.is_err() {
                 // Unable to serialize JWT's payload

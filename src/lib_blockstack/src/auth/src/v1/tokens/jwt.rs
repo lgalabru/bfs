@@ -21,7 +21,7 @@ impl Header {
     pub fn new() -> Header {
         Header {
             alg: Some("ES256K".to_string()),
-            typ: Some("JWT".to_string())
+            typ: Some("JWT".to_string()),
         }
     }
 }
@@ -29,5 +29,5 @@ impl Header {
 #[derive(Serialize, Deserialize)]
 pub struct Salt {
     pub r#type: Option<String>,
-    pub data: Option<Vec<u8>>
+    pub data: Option<Vec<u8>>,
 }

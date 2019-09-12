@@ -14,4 +14,3 @@ pub enum Error {
     PublicKeyCorrupted,
     KeyDerivationFailed,
 }
-

@@ -1,20 +1,9 @@
-use crate::v1::{
-    types::{EncryptedPayload},
-    errors::Error,
-};
-use secp256k1::{
-    SecretKey, 
-    PublicKey,
-    ecdh::SharedSecret
-};
+use crate::v1::{errors::Error, types::EncryptedPayload};
+use secp256k1::{ecdh::SharedSecret, PublicKey, SecretKey};
 // use ring::hmac::{Context, Key, HMAC_SHA256};
-use sha2::{Sha512, Digest};
-use block_modes::{
-    block_padding::Pkcs7,
-    BlockMode, 
-    Cbc
-};
 use aes::Aes256;
+use block_modes::{block_padding::Pkcs7, BlockMode, Cbc};
+use sha2::{Digest, Sha512};
 
 type Aes256Cbc = Cbc<Aes256, Pkcs7>;
 
@@ -26,16 +15,14 @@ pub struct DecryptContent {
 }
 
 impl DecryptContent {
-
     pub fn new(secret_key: Vec<u8>, encrypted_payload: EncryptedPayload) -> Self {
         Self {
             secret_key,
-            encrypted_payload
+            encrypted_payload,
         }
     }
 
     pub fn run(&self) -> Result<Vec<u8>, Error> {
-
         // Extract payload
         // todo(ludo): handle all the unwrap()
         let ephemeral_pk = {
@@ -60,12 +47,11 @@ impl DecryptContent {
             let pk = PublicKey::from_slice(&ephemeral_pk).unwrap();
             let sk = SecretKey::from_slice(&self.secret_key).unwrap();
             let shared_secret = SharedSecret::new(&pk, &sk);
-                        
+
             let mut hasher = Sha512::new();
             hasher.input(&shared_secret[..]);
             hasher.result().to_vec()
         };
-
 
         // todo(ludo): check hmac
         let _hmac_key = shared_secret.split_off(32);

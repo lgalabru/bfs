@@ -1,22 +1,11 @@
-use crate::v1::{
-    types::{EncryptedPayload},
-    errors::Error,
-};
-use secp256k1::{
-    Secp256k1, 
-    PublicKey,
-    ecdh::SharedSecret
-};
-use secp256k1::rand::OsRng;
-use rand::{Rng, thread_rng};
-use ring::hmac::{Context, Key, HMAC_SHA256};
-use sha2::{Sha512, Digest};
-use block_modes::{
-    block_padding::Pkcs7,
-    BlockMode, 
-    Cbc
-};
+use crate::v1::{errors::Error, types::EncryptedPayload};
 use aes::Aes256;
+use block_modes::{block_padding::Pkcs7, BlockMode, Cbc};
+use rand::{thread_rng, Rng};
+use ring::hmac::{Context, Key, HMAC_SHA256};
+use secp256k1::rand::OsRng;
+use secp256k1::{ecdh::SharedSecret, PublicKey, Secp256k1};
+use sha2::{Digest, Sha512};
 
 type Aes256Cbc = Cbc<Aes256, Pkcs7>;
 
@@ -28,12 +17,8 @@ pub struct EncryptContent {
 }
 
 impl EncryptContent {
-
     pub fn new(public_key: Vec<u8>, data: Vec<u8>) -> Self {
-        Self {
-            public_key,
-            data
-        }
+        Self { public_key, data }
     }
 
     pub fn run(&self) -> Result<EncryptedPayload, Error> {
@@ -48,11 +33,14 @@ impl EncryptContent {
             let mut rng = OsRng::new().expect("OsRng");
             let (ephemeral_sk, ephemeral_pk) = secp.generate_keypair(&mut rng);
             let pk = PublicKey::from_slice(&self.public_key).unwrap();
-            // todo(ludo): is this ECDH SharedSecret compatible with the JS implementation? 
+            // todo(ludo): is this ECDH SharedSecret compatible with the JS implementation?
             let shared_secret = SharedSecret::new(&pk, &ephemeral_sk);
             let mut hasher = Sha512::new();
             hasher.input(&shared_secret[..]);
-            (hasher.result().to_vec(), hex::encode(&ephemeral_pk.serialize().to_vec()))
+            (
+                hasher.result().to_vec(),
+                hex::encode(&ephemeral_pk.serialize().to_vec()),
+            )
         };
 
         let hmac_key = shared_secret.split_off(32);
@@ -64,7 +52,7 @@ impl EncryptContent {
         let pos = self.data.len();
         buffer[..pos].copy_from_slice(&self.data);
         let cipher_text = cipher.encrypt(&mut buffer, pos).unwrap();
-        
+
         // Create signature
         let tag = {
             let key = Key::new(HMAC_SHA256, &hmac_key);
@@ -77,10 +65,12 @@ impl EncryptContent {
 
         let was_string = "".to_string();
 
-        Ok(EncryptedPayload::new(hex::encode(&iv), 
-                                ephemeral_pk, 
-                                hex::encode(&cipher_text), 
-                                hex::encode(tag.as_ref()), 
-                                was_string))
+        Ok(EncryptedPayload::new(
+            hex::encode(&iv),
+            ephemeral_pk,
+            hex::encode(&cipher_text),
+            hex::encode(tag.as_ref()),
+            was_string,
+        ))
     }
 }

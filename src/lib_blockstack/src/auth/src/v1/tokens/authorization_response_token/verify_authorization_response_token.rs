@@ -1,18 +1,15 @@
-use serde_json;
-use sha2::{Sha256, Digest};
 use base64;
-use secp256k1::{Secp256k1, Message, Signature, PublicKey};
 use hex;
+use secp256k1::{Message, PublicKey, Secp256k1, Signature};
+use serde_json;
+use sha2::{Digest, Sha256};
 
-use crate::v1::{
-    tokens::{
-        jwt::Header,
-        VerifyAssociationToken,
-    },
-    errors::Error,
-    encryption::DecryptContent
-};
 use super::authorization_claims::Payload;
+use crate::v1::{
+    encryption::DecryptContent,
+    errors::Error,
+    tokens::{jwt::Header, VerifyAssociationToken},
+};
 
 pub struct VerifyAuthorizationToken {
     // todo(ludo): add description
@@ -24,18 +21,17 @@ pub struct VerifyAuthorizationToken {
     // todo(ludo): add description
     challenge_texts: Option<Vec<String>>,
     // todo(ludo): add description
-    transit_secret_key: Vec<u8>
+    transit_secret_key: Vec<u8>,
 }
 
 impl VerifyAuthorizationToken {
-
     pub fn new(token: String, transit_secret_key: Vec<u8>) -> Self {
         Self {
             token,
             issuer_address: None,
             valid_hub_urls: None,
             challenge_texts: None,
-            transit_secret_key
+            transit_secret_key,
         }
     }
 
@@ -121,16 +117,22 @@ impl VerifyAuthorizationToken {
             // Verify signature
             let secp = Secp256k1::verification_only();
             let pub_key_hex = hex::decode(&user_public_key).unwrap();
-            let public_key = PublicKey::from_slice(&pub_key_hex).expect("public keys must be 33 or 65 bytes, serialized according to SEC 2");
-            let message = Message::from_slice(&signing_input_hashed).expect("messages must be 32 bytes and are expected to be hashes");
-            let sig = Signature::from_compact(&compact_sig).expect("compact signatures are 64 bytes;");
+            let public_key = PublicKey::from_slice(&pub_key_hex)
+                .expect("public keys must be 33 or 65 bytes, serialized according to SEC 2");
+            let message = Message::from_slice(&signing_input_hashed)
+                .expect("messages must be 32 bytes and are expected to be hashes");
+            let sig =
+                Signature::from_compact(&compact_sig).expect("compact signatures are 64 bytes;");
             secp.verify(&message, &sig, &public_key)
         };
 
         assert!(sig_verification.is_ok());
 
         // todo(ludo): fix unwrap
-        let command = DecryptContent::new(self.transit_secret_key.clone(), payload.private_key.unwrap());
+        let command = DecryptContent::new(
+            self.transit_secret_key.clone(),
+            payload.private_key.unwrap(),
+        );
         let decrypted_data = command.run().unwrap();
 
         // todo(ludo): Check payload.iss / address against issuerAddress
@@ -144,4 +146,3 @@ impl VerifyAuthorizationToken {
         Ok(decrypted_data)
     }
 }
-

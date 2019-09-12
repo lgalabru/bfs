@@ -1,5 +1,5 @@
+use crate::v1::types::AuthScope;
 use serde::{Deserialize, Serialize};
-use crate::v1::types::{AuthScope};
 use uuid::Uuid;
 
 /// JWT Claims Set for "authentication response tokens"
@@ -33,20 +33,20 @@ pub struct Payload {
 }
 
 impl Payload {
-
-    pub fn new(address: String,
-               app_domain: String, 
-               do_not_include_profile: bool, 
-               manifest_uri: String, 
-               redirect_uri: String, 
-               version: String, 
-               scopes: Vec<AuthScope>,
-               supports_hub_url: bool,
-               public_keys: Vec<String>) -> Self {
-
+    pub fn new(
+        address: String,
+        app_domain: String,
+        do_not_include_profile: bool,
+        manifest_uri: String,
+        redirect_uri: String,
+        version: String,
+        scopes: Vec<AuthScope>,
+        supports_hub_url: bool,
+        public_keys: Vec<String>,
+    ) -> Self {
         // Generate UUID
         let uuid = Uuid::new_v4().to_string();
-        
+
         let did = format!("did:btc-addr:{}", address);
 
         Self {
@@ -61,7 +61,7 @@ impl Payload {
             do_not_include_profile: Some(do_not_include_profile),
             supports_hub_url: Some(supports_hub_url),
             scopes: Some(scopes),
-            public_keys: Some(public_keys)
+            public_keys: Some(public_keys),
         }
     }
 }

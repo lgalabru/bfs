@@ -2,7 +2,6 @@ use std::ffi::OsString;
 
 #[derive(Debug)]
 pub struct File {
-
     pub name: OsString,
 
     pub path: OsString,
@@ -15,7 +14,7 @@ pub struct File {
 
     pub content_type: Option<String>,
 
-    pub content_length: Option<i64>
+    pub content_length: Option<i64>,
 }
 
 impl File {
@@ -27,7 +26,7 @@ impl File {
             updated_at: None,
             content: None,
             content_type: None,
-            content_length: None
+            content_length: None,
         }
     }
 }
@@ -40,25 +39,25 @@ pub struct TearDownResult;
 
 #[derive(Debug)]
 pub struct ListFilesResult {
-    pub files: Vec<File>
+    pub files: Vec<File>,
 }
 
 #[derive(Debug)]
 pub struct CreateFileResult {
-    pub file: File
+    pub file: File,
 }
 
 #[derive(Debug)]
 pub struct ReadFileResult {
-    pub file: File
+    pub file: File,
 }
 
 #[derive(Debug)]
 pub struct UpdateFileResult {
-    pub file: File
+    pub file: File,
 }
 
 #[derive(Debug)]
 pub struct DeleteFileResult {
-    pub file: File
+    pub file: File,
 }
