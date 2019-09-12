@@ -17,7 +17,7 @@ pub fn get_bip39_seed_from_mnemonic(mnemonic: &str, password: &str) -> Result<Ve
     Ok(seed)
 }
 
-pub fn get_hardened_child_keypair(bip39_seed: &Vec<u8>, path: &[u32]) -> Result<(Vec<u8>, String), Error> {
+pub fn get_hardened_child_keypair(bip39_seed: &[u8], path: &[u32]) -> Result<(Vec<u8>, String), Error> {
     let (master_node_bytes, chain_code) = get_master_node_from_bip39_seed(&bip39_seed);
     let master_node = SecretKey::from_slice(&master_node_bytes).unwrap();
     let (sk, _) = get_hardened_derivation(master_node, &chain_code, &path)?;
@@ -33,7 +33,7 @@ pub fn export_keypair(secret_key: SecretKey, public_key: PublicKey) -> Result<(V
     Ok((sk, pk))
 }
 
-pub fn get_master_node_from_bip39_seed(bip39_seed: &Vec<u8>) -> (Vec<u8>, Vec<u8>) {
+pub fn get_master_node_from_bip39_seed(bip39_seed: &[u8]) -> (Vec<u8>, Vec<u8>) {
     let key = Key::new(HMAC_SHA512, b"Bitcoin seed");
     let tag = ring::hmac::sign(&key, &bip39_seed);
     let mut master_node = tag.as_ref().to_vec();
@@ -41,7 +41,7 @@ pub fn get_master_node_from_bip39_seed(bip39_seed: &Vec<u8>) -> (Vec<u8>, Vec<u8
     (master_node, chain_code)
 }
 
-pub fn get_hardened_derivation(root_key: SecretKey, root_code: &Vec<u8>, path: &[u32]) -> Result<(SecretKey, Vec<u8>), Error> {
+pub fn get_hardened_derivation(root_key: SecretKey, root_code: &[u8], path: &[u32]) -> Result<(SecretKey, Vec<u8>), Error> {
     let mut parent_key = root_key;
     let mut parent_chain_code = root_code.to_vec();
 
@@ -70,30 +70,6 @@ pub fn get_hardened_derivation(root_key: SecretKey, root_code: &Vec<u8>, path: &
         parent_chain_code = chain_code.to_vec();
     }
     Ok((parent_key, parent_chain_code))
-}
-
-pub fn get_private_key_from_wif(wif: &str) -> Result<Vec<u8>, Error> {
-    // Decode base58
-    let sk_checksumed = bs58::decode(&wif).into_vec().unwrap();
-    let len = sk_checksumed.len();
-    let suffix_len: usize;
-    let mut should_compress = false;
-
-    // todo(ludo): Improve legibility
-    if len == 32 + 4 + 1 + 1 {
-        suffix_len = 5;
-        should_compress = true;
-    } else if len == 32 + 4 + 1 {
-        suffix_len = 4;
-    } else {
-        return Err(Error::SecretKeyCorrupted);
-    }
-    let sk = &sk_checksumed[1..len-suffix_len];
-
-    // todo(ludo): Should handle checksum
-    // todo(ludo): Should handle 0x80
-
-    Ok(sk.to_vec())
 }
 
 pub fn get_address_from_public_key(public_key: &str) -> Result<String, Error> {

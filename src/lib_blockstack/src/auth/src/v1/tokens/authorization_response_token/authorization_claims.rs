@@ -51,11 +51,9 @@ impl Payload {
         let mut rng = thread_rng();
         let mut salt = [0u8; 16];
         rng.fill(&mut salt);
-        let salt_hex = hex::encode(&salt);
+        let _salt_hex = hex::encode(&salt);
 
         let did = format!("did:btc-addr:{}", address);
-
-        // todo(ludo): encode secret key
 
         Self {
             jti: Some(uuid),

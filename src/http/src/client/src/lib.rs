@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::ffi::OsString;
-use reqwest::{Client, header};
+use reqwest::{header};
 
 #[derive(Debug)]
 pub enum Error {
@@ -18,14 +17,14 @@ pub fn list_files(endpoint_url: &str, authorization_token: &str, path: OsString)
 
     let mut res = match request {
         Ok(res) => res,
-        Err(err) => {
+        Err(_err) => {
             return Err(Error::Unknown);
         }
     };
 
     let payload: ListFilesResponse = match res.json() {
         Ok(payload) => payload,
-        Err(err) => {
+        Err(_err) => {
             return Err(Error::Unknown);
         }
     };

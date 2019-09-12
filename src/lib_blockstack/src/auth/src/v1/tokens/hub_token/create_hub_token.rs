@@ -39,7 +39,7 @@ impl CreateHubToken {
                                        self.hub_url.clone(),
                                        self.gaia_challenge.clone());
             let w_payload_json = serde_json::to_string(&payload);
-            if let Err(_) = w_payload_json {
+            if w_payload_json.is_err() {
                 // Unable to serialize JWT's payload
                 return Err(Error::PayloadDataCorrupted);
             }
@@ -51,7 +51,7 @@ impl CreateHubToken {
         let header = {
             let header = Header::new();
             let w_header_json = serde_json::to_string(&header);
-            if let Err(_) = w_header_json {
+            if w_header_json.is_err() {
                 // Unable to serialize JWT's header
                 return Err(Error::HeaderDataCorrupted);
             }

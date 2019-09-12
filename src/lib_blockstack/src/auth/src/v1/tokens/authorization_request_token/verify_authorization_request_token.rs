@@ -6,8 +6,7 @@ use hex;
 
 use crate::v1::{
     tokens::jwt::Header,
-    errors::Error,
-    helpers::get_address_from_public_key
+    errors::Error
 };
 use super::authorization_request_claims::Payload;
 
@@ -32,7 +31,7 @@ impl VerifyAuthorizationRequestToken {
             return Err(Error::VersionMismatch);
         }
 
-        let jwt_parts: Vec<&str> = jwt_token.split(".").collect();
+        let jwt_parts: Vec<&str> = jwt_token.split('.').collect();
 
         if jwt_parts.len() != 3 {
             // Tokens should have 3 components
@@ -43,14 +42,14 @@ impl VerifyAuthorizationRequestToken {
 
         let header: Header = {
             let w_header_decoded = base64::decode(jwt_parts[0]);
-            if let Err(_) = w_header_decoded {
+            if w_header_decoded.is_err() {
                 // Unable to base64 decode JWT's header
                 return Err(Error::HeaderEncodingCorrupted);
             }
             let header_decoded = w_header_decoded.unwrap();
 
             let w_header = serde_json::from_slice(&header_decoded[..]);
-            if let Err(_) = w_header {
+            if w_header.is_err() {
                 // Unable to deserialize JWT's header
                 return Err(Error::HeaderDataCorrupted);
             }
@@ -59,14 +58,14 @@ impl VerifyAuthorizationRequestToken {
 
         let payload: Payload = {
             let w_payload_decoded = base64::decode(jwt_parts[1]);
-            if let Err(_) = w_payload_decoded {
+            if w_payload_decoded.is_err() {
                 // Unable to base64 decode JWT's payload
                 return Err(Error::PayloadEncodingCorrupted);
             }
             let payload_decoded = w_payload_decoded.unwrap();
 
             let w_payload = serde_json::from_slice(&payload_decoded[..]);
-            if let Err(_) = w_payload {
+            if w_payload.is_err() {
                 // Unable to deserialize JWT's payload
                 return Err(Error::PayloadDataCorrupted);
             }
@@ -87,7 +86,7 @@ impl VerifyAuthorizationRequestToken {
         // Check Signature
         let sig_verification = {
             let w_url_safe_b64_decode = base64::decode_config(&signature, base64::URL_SAFE);
-            if let Err(_) = w_url_safe_b64_decode {
+            if w_url_safe_b64_decode.is_err() {
                 // Unable to base64 decode JWT's payload
                 return Err(Error::SignatureEncodingCorrupted);
             }

@@ -69,10 +69,10 @@ impl CreateAppKeypair {
             let mut index = 0i32;
             for c in app_index_hashed.as_bytes().iter() {
                 let s1: i32 = index << 5;
-                let s2: i64 = (s1 as i64) - (index as i64) + (*c as i64);
+                let s2: i64 = i64::from(s1) - i64::from(index) + i64::from(*c);
                 index = (s2 as i32) & (s2 as i32);
             }
-            index & 0x7fffffff
+            index & 0x7fff_ffff
         } as u32;
 
         // Derive the app node: m/888'/0'/{identity_index}'/{apps_node}'/{app_index}'

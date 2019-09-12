@@ -3,7 +3,6 @@ use crate::v1::{
     errors::Error,
 };
 use secp256k1::{
-    Secp256k1, 
     SecretKey, 
     PublicKey,
     ecdh::SharedSecret
@@ -47,7 +46,7 @@ impl DecryptContent {
             let data = self.encrypted_payload.iv.as_ref().unwrap();
             hex::decode(data).unwrap()
         };
-        let signature = {
+        let _signature = {
             let data = self.encrypted_payload.mac.as_ref().unwrap();
             hex::decode(data).unwrap()
         };
@@ -61,18 +60,15 @@ impl DecryptContent {
             let pk = PublicKey::from_slice(&ephemeral_pk).unwrap();
             let sk = SecretKey::from_slice(&self.secret_key).unwrap();
             let shared_secret = SharedSecret::new(&pk, &sk);
-            
-            let secp = Secp256k1::new();
-            let pk2 = PublicKey::from_secret_key(&secp, &sk);
-            
+                        
             let mut hasher = Sha512::new();
             hasher.input(&shared_secret[..]);
             hasher.result().to_vec()
         };
 
-        let hmac_key = shared_secret.split_off(32);
 
         // todo(ludo): check hmac
+        let _hmac_key = shared_secret.split_off(32);
         // let tag = {
         //     let key = Key::new(HMAC_SHA256, &hmac_key);
         //     let mut context = Context::with_key(&key);

@@ -5,9 +5,9 @@ use crate::v1::{
 use secp256k1::{
     Secp256k1, 
     PublicKey,
-    rand::OsRng,
     ecdh::SharedSecret
 };
+use secp256k1::rand::OsRng;
 use rand::{Rng, thread_rng};
 use ring::hmac::{Context, Key, HMAC_SHA256};
 use sha2::{Sha512, Digest};

@@ -46,27 +46,25 @@ impl VerifyAuthorizationToken {
             return Err(Error::VersionMismatch);
         }
 
-        let jwt_parts: Vec<&str> = jwt_token.split(".").collect();
+        let jwt_parts: Vec<&str> = jwt_token.split('.').collect();
 
         if jwt_parts.len() != 3 {
             // Tokens should have 3 components
             return Err(Error::MalFormattedToken);
         }
 
-        // todo(ludo): merge slices instead?
-        let signing_input = [jwt_parts[0].clone(), jwt_parts[1].clone()].join(".");
         let signature = jwt_parts[2];
 
-        let header: Header = {
+        let _header: Header = {
             let w_header_decoded = base64::decode(jwt_parts[0]);
-            if let Err(_) = w_header_decoded {
+            if w_header_decoded.is_err() {
                 // Unable to base64 decode JWT's header
                 return Err(Error::HeaderEncodingCorrupted);
             }
             let header_decoded = w_header_decoded.unwrap();
 
             let w_header = serde_json::from_slice(&header_decoded[..]);
-            if let Err(_) = w_header {
+            if w_header.is_err() {
                 // Unable to deserialize JWT's header
                 return Err(Error::HeaderDataCorrupted);
             }
@@ -75,21 +73,21 @@ impl VerifyAuthorizationToken {
 
         let payload: Payload = {
             let w_payload_decoded = base64::decode(jwt_parts[1]);
-            if let Err(_) = w_payload_decoded {
+            if w_payload_decoded.is_err() {
                 // Unable to base64 decode JWT's payload
                 return Err(Error::PayloadEncodingCorrupted);
             }
             let payload_decoded = w_payload_decoded.unwrap();
 
             let w_payload = serde_json::from_slice(&payload_decoded[..]);
-            if let Err(_) = w_payload {
+            if w_payload.is_err() {
                 // Unable to deserialize JWT's payload
                 return Err(Error::PayloadDataCorrupted);
             }
             w_payload.unwrap()
         };
 
-        if let None = payload.iss {
+        if payload.iss.is_none() {
             // Auth token should be a JWT with at least an `iss` claim
             return Err(Error::PrincipalMissing);
         }
@@ -107,14 +105,14 @@ impl VerifyAuthorizationToken {
         // Check Signature
         let sig_verification = {
             let w_url_safe_b64_decode = base64::decode_config(&signature, base64::URL_SAFE);
-            if let Err(_) = w_url_safe_b64_decode {
+            if w_url_safe_b64_decode.is_err() {
                 // Unable to base64 decode JWT's payload
                 return Err(Error::SignatureEncodingCorrupted);
             }
             let compact_sig = w_url_safe_b64_decode.unwrap();
 
-            let signing_input = [jwt_parts[0].clone(), jwt_parts[1].clone()].join(".");
-            
+            let signing_input = format!("{}.{}", jwt_parts[0], jwt_parts[1]);
+
             // SHA256
             let mut sha2 = Sha256::new();
             sha2.input(signing_input.clone());

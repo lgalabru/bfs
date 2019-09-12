@@ -11,7 +11,7 @@ pub fn get_identities(address: &str) -> Result<Vec<String>, Error> {
     let payload: HashMap<String, Vec<String>> = reqwest::get(&url).unwrap().json().unwrap();
     // todo(ludo): handle these unwrap()
     let names = payload.get("names").unwrap();
-    Ok((names.to_vec()))
+    Ok(names.to_vec())
 }
 
 pub fn get_user(name: &str) -> Result<HashMap<String, User>, Error> {
@@ -19,7 +19,7 @@ pub fn get_user(name: &str) -> Result<HashMap<String, User>, Error> {
     let resp: HashMap<String, User> = reqwest::get(&url).unwrap().json().unwrap();
     // todo(ludo): handle these unwrap()
     let user = &*resp.get(name).unwrap();
-    Ok((resp))
+    Ok(resp)
 }
 
 #[derive(Serialize, Deserialize, Debug)]
